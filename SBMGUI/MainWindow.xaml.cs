@@ -1,4 +1,5 @@
-﻿using Hardcodet.Wpf.TaskbarNotification;
+﻿using BLE2TCP;
+using Hardcodet.Wpf.TaskbarNotification;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -25,28 +26,46 @@ namespace SBMGUI
 
 //        TaskbarIcon _tbi;
 
+        Server _server;
 
         public MainWindow()
         {
             InitializeComponent();
 
             /*
-                        Icon i = new System.Drawing.Icon("Error.ico");
-                        //Icon i = new Icon(System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("Error.ico"));
-                        _tbi = new TaskbarIcon();
-                        _tbi.Icon = i;
-                        _tbi.ToolTipText = "hello world";
+                Icon i = new System.Drawing.Icon("Error.ico");
+                //Icon i = new Icon(System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("Error.ico"));
+                _tbi = new TaskbarIcon();
+                _tbi.Icon = i;
+                _tbi.ToolTipText = "hello world";
 
             */
 
 
             this.Loaded+=MainWindow_Loaded;
+            this.Closed+=MainWindow_Closed;
 
+        }
+
+        private void MainWindow_Closed(object sender, EventArgs e)
+        {
+            _server.Stop();
+            _server = null;
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            _console.Print("Test");
+            const int PORT = 65432;
+
+            ConsoleLog log = new ConsoleLog(_console);
+            SocketServer t = new SocketServer(log,PORT);
+            Core c = new Core(log,t);
+            _server = new Server(log,t,t,c);
+
+            _server.StartAsNewThread();
+
+
+
         }
     }
 }

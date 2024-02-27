@@ -42,6 +42,15 @@ namespace SBMGUI
         
         }
 
+        public void SafePrint(string s)
+        {
+            this.Dispatcher.Invoke(()=>{ Print(s); });   
+        }
+
+
+
+
+
 
     }
 
