@@ -23,18 +23,20 @@ namespace BLE2TCP
         PacketBuilder _builder;
         bool _isneedtoclose;
         System.Timers.Timer _timer;
-
-
         ILog _log;
-        public Server(ILog log,ITransport transport,IPacketSender sender,IPacketParser parser)
+        IServerStatus _status;
+
+
+        public Server(ILog log,IServerStatus status,ITransport transport,IPacketSender sender,IPacketParser parser)
         { 
             _log=log;
+            _status = status;
             _transport = transport;
             _parser = parser;
             _sender = sender;
             _builder = new PacketBuilder();
             _timer = new System.Timers.Timer(1000);
-            _timer.Elapsed += OnTimer; ;
+            _timer.Elapsed += OnTimer; 
             _timer.AutoReset = true;
         }
 

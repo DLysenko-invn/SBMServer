@@ -49,11 +49,19 @@ namespace BLE2TCP
     }
 
 
+    public interface IServerStatus
+    { 
+        public const int SERVER_STOPPED = -1;
+        public const int RESET = -1;
 
+        public int Port { get;set; }
+        public string IP { get;set; }
+        public int ConnectionsCount { get;set; }
 
+        public void IncRX(int incval);
+        public void IncTX(int incval);
 
-
-
+    }
 
 
 

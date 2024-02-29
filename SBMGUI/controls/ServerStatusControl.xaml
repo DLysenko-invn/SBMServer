@@ -10,7 +10,7 @@
     <Grid>
 
         <TextBlock HorizontalAlignment="Left" Height="17" Margin="10,18,0,0" Text="Port:" TextWrapping="Wrap" VerticalAlignment="Top" Width="38"/>
-        <TextBox HorizontalAlignment="Left" Height="17" Margin="53,18,0,0" Text="TextBox" TextWrapping="Wrap" VerticalAlignment="Top" Width="107"/>
+        <TextBox  x:Name="_portctrl"  HorizontalAlignment="Left" Height="17" Margin="53,18,0,0" Text="TextBox" TextWrapping="Wrap" VerticalAlignment="Top" Width="107" IsReadOnly="True"/>
 
 
     </Grid>

@@ -24,7 +24,7 @@ namespace SBMGUI
             _core= null;
         }
 
-        public void SetCore(AppCore core)
+        public virtual void SetCore(AppCore core)
         {   
             _core = core;
         }

@@ -78,6 +78,7 @@ namespace BLE2TCP
         delegate PacketBase ProcessPacketDelegate(PacketBase packet); 
         IPacketSender _transport;
         ILog _log;
+        IServerStatus _status;
         IWatcher _watcher;
         BLEIndexer _indexer;
         Dictionary<string, IConnection> _connections = new Dictionary<string, IConnection>();
@@ -87,9 +88,10 @@ namespace BLE2TCP
         Dictionary<PacketOpCode,ProcessPacketDelegate> _proctab;
         Dictionary<BLECallbackAction,PacketOpCode> _msgconvert;
 
-        public Core(ILog log,IPacketSender transport)
+        public Core(ILog log,IServerStatus status,IPacketSender transport)
         { 
             _log =log;
+            _status = status;
             _transport = transport;
             _watcher = new DEVWatcher(_log,_transport);
             _indexer = new BLEIndexer();

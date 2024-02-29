@@ -22,5 +22,20 @@ namespace SBMGUI
         {
             InitializeComponent();
         }
+
+
+        public override void SetCore(AppCore core)
+        {
+            base.SetCore( core );
+
+            core.Status.PropertyChanged+=Status_PropertyChanged;
+
+        }
+
+        private void Status_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            this.Dispatcher.Invoke(()=>{ _portctrl.Text = _core.Status.Port.ToString(); });  
+
+        }
     }
 }

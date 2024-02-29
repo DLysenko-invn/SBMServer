@@ -13,82 +13,38 @@ namespace BLE2TCP
 {
     class SocketServer : ITransport, IPacketSender
     {
-        int _port;
         ILog _log;
+        IServerStatus _status;
         Socket _client;
         static byte[] NOBYTES = new byte[] { };
         Socket _listener;
         IPAddress _address;
-        Counter _counter;
         Sender _sender;
 
 
-        class Counter
-        {
-            ILog _log;
-            ulong _sendcounter, _recvcounter;
-            bool _isdirty;
-            DateTime _time;
-            public Counter(ILog log)
-            {
-                _log = log;
-                Reset();
-                _isdirty = false;
-            }
-
-            public void Reset()
-            {
-                _sendcounter = 0;
-                _recvcounter = 0;
-                _isdirty = true;
-                _time = new DateTime(1970,1,1);
-            }
-
-
-            public void Inc(bool issend, ulong count)
-            {
-                if (issend)
-                {   _sendcounter += count;
-                }  else
-                {   _recvcounter += count;
-                }
-                _isdirty = true;
-                WriteLog();
-            }
-
-
-            public void WriteLog()
-            {
-                if (!_isdirty)
-                    return;
-                if ((DateTime.Now - _time).TotalSeconds < 10)
-                    return;
-
-                //_log.LogLine( string.Format("Transport {0}/{1}", _sendcounter, _recvcounter) );
-                _isdirty = false;
-                _time = DateTime.Now;
-            }
 
 
 
 
-        }
+
+
 
         class Sender
         {
             Thread _thread;
             Socket _client;
-            Counter _counter;
             ConcurrentQueue<byte[]> _data;
             EventWaitHandle _havedata;
             EventWaitHandle _start;
             EventWaitHandle _stop;
             EventWaitHandle _close;
+            IServerStatus _status;
 
             public Sender()
             {
                 _thread = null;
                 _client = null;
+                _status  = null;
             }
 
             public void Send(byte[] bytes)
@@ -120,7 +76,7 @@ namespace BLE2TCP
                         try
                         {
                             int n = _client.Send(data);
-                            _counter.Inc(true, (uint)n);
+                            _status.IncTX(n);
                             Debug.Assert(n == data.Length);
                         }
                         catch
@@ -137,13 +93,14 @@ namespace BLE2TCP
 
             }
 
-            public void Start(Socket client,Counter counter)
+            public void Start(Socket client,IServerStatus status)
             {
                 _close = new AutoResetEvent(false);
                 _havedata = new AutoResetEvent(false);
                 _start = new AutoResetEvent(false);
                 _stop = new AutoResetEvent(false);
-                _counter = counter;
+                _status  = status;
+                _status.IncTX(IServerStatus.RESET);;
                 _client = client;
                 _thread = new Thread(SendProc);
                 _thread.Start();
@@ -164,15 +121,16 @@ namespace BLE2TCP
 
         }
 
-        public SocketServer(ILog log,int port)
+        public SocketServer(ILog log,IServerStatus status)
         { 
             _log=log;
-            _port = port;
+            _status = status;
             _client = null;
             _listener = null;
             _address = null;
-            _counter = new Counter(log);
             _sender = null;
+
+            _status.ConnectionsCount = IServerStatus.SERVER_STOPPED;
 
         }
 
@@ -203,7 +161,7 @@ namespace BLE2TCP
             int n;
             try
             {   n = _client.Receive(data);
-                _counter.Inc(false,(uint)n);
+                _status.IncRX(n);
                 if ((n != data.Length) && (n!=0))
                 {   _log.LogError(string.Format("Socket receive error {0} {1}", size, n));
                 }
@@ -227,8 +185,10 @@ namespace BLE2TCP
 
         public void CloseConnection()
         {
-            if (_client == null)
+             if (_client == null)
                 return;
+
+            _status.ConnectionsCount = 0;
             Socket c = _client;
             _client = null;
             c.Shutdown(SocketShutdown.Both);
@@ -237,12 +197,13 @@ namespace BLE2TCP
 
         public bool WaitForConnection()
         {
+            _status.ConnectionsCount = 0;
 
             Debug.Assert(_listener != null);
             bool rc;
 
             try
-            {   _log.LogLine("Waiting for a connection @" + _address.ToString() + ":" + _port.ToString() + " ...");
+            {   _log.LogLine("Waiting for a connection @" + _address.ToString() + ":" + _status.Port.ToString() + " ...");
                 _client = _listener.Accept();
                 _log.LogLine("Connected");
                 rc = true;
@@ -252,9 +213,11 @@ namespace BLE2TCP
                 rc = false;
             }
 
-            _counter.Reset();
+            _status.IncRX(IServerStatus.RESET);
+            _status.IncTX(IServerStatus.RESET);
             _sender = new Sender();
-            _sender.Start(_client, _counter);
+            _sender.Start(_client, _status);
+            _status.ConnectionsCount = 1;
 
             return rc;
 
@@ -263,6 +226,8 @@ namespace BLE2TCP
 
         public bool Start()
         {
+
+
 
             IPHostEntry hostinfo = Dns.GetHostEntry("localhost");
             foreach (IPAddress address in hostinfo.AddressList)
@@ -279,7 +244,7 @@ namespace BLE2TCP
 
             if (_address != null)
             {
-                IPEndPoint localendpoint = new IPEndPoint(_address, _port);
+                IPEndPoint localendpoint = new IPEndPoint(_address, _status.Port);
                 _listener = new Socket(_address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 rc = true;
                 try
@@ -295,7 +260,7 @@ namespace BLE2TCP
                 }
             }
 
-
+            _status.ConnectionsCount = rc ? 0 : IServerStatus.SERVER_STOPPED;
 
             return rc;
 
@@ -303,6 +268,7 @@ namespace BLE2TCP
 
         public void Stop()
         {
+            _status.ConnectionsCount = IServerStatus.SERVER_STOPPED;
 
             CloseConnection();
 
@@ -362,7 +328,8 @@ namespace BLE2TCP
 
         public void OnTimer()
         {
-            _counter.WriteLog();
+            //todo: remove
+            //_counter.WriteLog();
         }
 
 
