@@ -1,30 +1,28 @@
 ﻿using BLE2TCP;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace SBMGUI
 {
-    class ConsoleLog : ILog
+    public class ConsoleLog : ILog
     {
 
-        object _lockobj = new object();
         ConsoleControl _console;
 
 
         public ConsoleLog(ConsoleControl ctrl)
         {   
+            Debug.Assert(ctrl!=null);
             _console = ctrl;
         }
 
         public void LogLine(string text)
         {
-            lock (_lockobj)
-            {
-                _console.SafePrint(text);
-            }
+            _console.Print(text);
         }
         public void LogError(string text)
         {

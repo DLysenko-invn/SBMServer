@@ -20,7 +20,7 @@ namespace SBMGUI
     /// <summary>
     /// Interaction logic for ConsoleControl.xaml
     /// </summary>
-    public partial class ConsoleControl:UserControl,IConsoleOut
+    public partial class ConsoleControl:TabContentBaseControl,IConsoleOut
     {
 
         ConsoleContent _dc = new ConsoleContent();
@@ -33,7 +33,7 @@ namespace SBMGUI
         }
 
 
-        public void Print(string s)
+        public void UnsafePrint(string s)
         {
             if (s==null)
                 return;
@@ -42,9 +42,12 @@ namespace SBMGUI
         
         }
 
-        public void SafePrint(string s)
+        public void Print(string s)
         {
-            this.Dispatcher.Invoke(()=>{ Print(s); });   
+            lock (this)
+            {
+                this.Dispatcher.Invoke(()=>{ UnsafePrint(s); });   
+            }
         }
 
 

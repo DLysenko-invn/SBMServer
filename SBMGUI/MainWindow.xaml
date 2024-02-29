@@ -15,25 +15,24 @@
 
         <TabControl>
             <TabItem Header="Setup">
-                <Grid Background="#FFE5E5E5">
-
-
-
-
-                </Grid>
+                <local:ServerStatusControl x:Name="_servertab"> </local:ServerStatusControl>
 
 
             </TabItem>
             <TabItem Header="Boards">
+                <local:BoardsListControl x:Name="_boardstab"> </local:BoardsListControl>
+            </TabItem>
+
+            <TabItem Header="OTA Firmware update">
                 <Grid Background="#FFE5E5E5"/>
             </TabItem>
 
+
             <TabItem Header="Console">
-                
-                <local:ConsoleControl x:Name="_console">
-                </local:ConsoleControl>
-                
-                
+
+                <local:ConsoleControl x:Name="_consoletab">  </local:ConsoleControl>
+
+
             </TabItem>
 
 

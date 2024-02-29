@@ -317,8 +317,10 @@ namespace BLE2TCP
             catch
             {    
             }
-            _sender.Stop();
-            _sender = null;
+            if (_sender!=null)
+            {   _sender.Stop();
+                _sender = null;
+            }
             
         }
 

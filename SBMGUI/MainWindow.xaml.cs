@@ -1,4 +1,4 @@
-﻿using BLE2TCP;
+﻿
 using Hardcodet.Wpf.TaskbarNotification;
 using System;
 using System.Collections.Generic;
@@ -16,6 +16,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
+using System.Threading;
+
 namespace SBMGUI
 {
     /// <summary>
@@ -24,9 +26,11 @@ namespace SBMGUI
     public partial class MainWindow:Window
     {
 
+
+
 //        TaskbarIcon _tbi;
 
-        Server _server;
+        AppCore _core;
 
         public MainWindow()
         {
@@ -45,27 +49,50 @@ namespace SBMGUI
             this.Loaded+=MainWindow_Loaded;
             this.Closed+=MainWindow_Closed;
 
+
+
+
+
+
+
+            
+
         }
 
         private void MainWindow_Closed(object sender, EventArgs e)
         {
-            _server.Stop();
-            _server = null;
+            _core?.Dispose();
+            _core = null;
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            const int PORT = 65432;
+            _core = new AppCore( new ConsoleLog( _consoletab ) );
 
-            ConsoleLog log = new ConsoleLog(_console);
-            SocketServer t = new SocketServer(log,PORT);
-            Core c = new Core(log,t);
-            _server = new Server(log,t,t,c);
+            _servertab.SetCore(_core);
+            _boardstab.SetCore(_core);
 
-            _server.StartAsNewThread();
+
+            _core.OnMainWindowLoaded();
+
+
 
 
 
         }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 }
