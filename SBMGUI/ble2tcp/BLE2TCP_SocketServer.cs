@@ -209,15 +209,27 @@ namespace BLE2TCP
                 rc = true;
             }
             catch (Exception e)
-            {   _log.LogError("Socket exception : " + e.ToString());
+            {   
+                if (_listener==null)
+                {
+                    // false accept while force closing listener socket 
+                } else
+                {   _log.LogError("Socket exception : " + e.ToString());
+                }
+                
                 rc = false;
             }
 
-            _status.IncRX(IServerStatus.RESET);
-            _status.IncTX(IServerStatus.RESET);
-            _sender = new Sender();
-            _sender.Start(_client, _status);
-            _status.ConnectionsCount = 1;
+            if (rc)
+            {   _status.IncRX(IServerStatus.RESET);
+                _status.IncTX(IServerStatus.RESET);
+                _sender = new Sender();
+                _sender.Start(_client, _status);
+                _status.ConnectionsCount = 1;
+            } else
+            {   _status.ConnectionsCount = IServerStatus.SERVER_STOPPED;
+            }
+
 
             return rc;
 
@@ -255,7 +267,7 @@ namespace BLE2TCP
                 }
                 catch (Exception e)
                 {
-                    _log.LogLine("Socket exception : " + e.ToString());
+                    _log.LogLine("Socket listener exception : " + e.ToString());
                     rc = false;
                 }
             }
@@ -277,16 +289,19 @@ namespace BLE2TCP
             Socket c = _listener;
             _listener = null;
             try
-            {   c.Shutdown(SocketShutdown.Both);
+            {   //c.Shutdown(SocketShutdown.Both);
                 c.Close();
+                    
             }
-            catch
-            {    
+            catch (Exception e)
+            {    _log.LogLine("Socket close exception : " + e.ToString());
             }
             if (_sender!=null)
             {   _sender.Stop();
                 _sender = null;
             }
+
+            _log.LogLine("Stopped");
             
         }
 

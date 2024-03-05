@@ -37,6 +37,7 @@ namespace BLE2TCP
     }
 
 
+
     interface IPayload
     {
 
@@ -46,23 +47,49 @@ namespace BLE2TCP
         byte[] ToBytes();
 
         int ByteSize { get; }
+
+        
+
     }
 
 
     public interface IServerStatus
     { 
-        public const int SERVER_STOPPED = -1;
-        public const int RESET = -1;
-
-        public int Port { get;set; }
-        public string IP { get;set; }
-        public int ConnectionsCount { get;set; }
-
-        public void IncRX(int incval);
-        public void IncTX(int incval);
+        const int SERVER_STOPPED = -1;
+        const int RESET = -1;
+        
+        int Port { get;set; }
+        string IP { get;set; }
+        int ConnectionsCount { get;set; }
+        ulong RXBytes { get; }
+        ulong TXBytes { get; }
+        
+        
+        
+        void IncRX(int incval);
+        void IncTX(int incval);
+        
+        void DeviceFound(IDeviceInfo devinfo);
+        void DeviceListClear();
+        IDeviceInfo[] Devices {get;}
 
     }
 
+    public interface IDeviceInfo
+    {
+        string Name { get; }
+        string Id { get; }
+        string InterfaceName { get; }
+
+        bool IsConnected { get;}
+
+        bool IsTDK { get; }
+
+
+        bool IsPaired { get; }
+        bool IsConnectable { get; }
+
+    }
 
 
 }

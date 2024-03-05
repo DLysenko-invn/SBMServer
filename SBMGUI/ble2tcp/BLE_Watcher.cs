@@ -30,6 +30,8 @@ namespace BLE2TCP
                 return;
             }
 
+            _parent.WatcherStarted(this);
+
             string[] requestedProperties = { "System.Devices.Aep.DeviceAddress", "System.Devices.Aep.IsConnected", "System.Devices.Aep.Bluetooth.Le.IsConnectable" };
             string aqsAllBluetoothLEDevices = "(System.Devices.Aep.ProtocolId:=\"{bb7bb05e-5972-42b5-94fc-76eaa7084d49}\")";
 
@@ -70,6 +72,7 @@ namespace BLE2TCP
         private void OnWatcherAdded(DeviceWatcher sender, DeviceInformation args)
         {
             BLEDeviceInfo i = new BLEDeviceInfo(args);
+   
             _parent.WatcherDeviceFound(i);
 
         }

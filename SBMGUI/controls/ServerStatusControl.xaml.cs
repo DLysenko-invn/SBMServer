@@ -1,5 +1,7 @@
-﻿using System;
+﻿using BLE2TCP;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -28,14 +30,43 @@ namespace SBMGUI
         {
             base.SetCore( core );
 
-            core.Status.PropertyChanged+=Status_PropertyChanged;
+            core.Status.PropertyChanged+=Status_PropertyChangedUnsafe;
 
         }
 
-        private void Status_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void Status_PropertyChangedUnsafe(object sender, PropertyChangedEventArgs e)
         {
-            this.Dispatcher.Invoke(()=>{ _portctrl.Text = _core.Status.Port.ToString(); });  
+            this.Dispatcher.Invoke(()=>{ Status_PropertyChanged(sender, e); });  
+        }
 
+
+
+        private void Status_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            _portctrl.Text = _core.Status.Port.ToString();
+            if (_core.Status.ConnectionsCount == IServerStatus.SERVER_STOPPED)
+            {   _conncountctrl.Text = "Stopped";
+            } else
+            if (_core.Status.ConnectionsCount == 0)
+            {   _conncountctrl.Text = "Waiting for connection";
+            } else
+            {   _conncountctrl.Text = "Connected";
+            }
+            //_conncountctrl.Text = _core.Status.ConnectionsCount.ToString();
+            _rxbytesctrl.Text = _core.Status.RXBytes.ToString();
+            _txbytesctrl.Text = _core.Status.TXBytes.ToString();
+            
+
+        }
+
+        private void ButtonStart_Click(object sender, RoutedEventArgs e)
+        {
+            _core.ServerStart();
+        }
+
+        private void ButtonStop_Click(object sender, RoutedEventArgs e)
+        {
+            _core.ServerStop();
         }
     }
 }

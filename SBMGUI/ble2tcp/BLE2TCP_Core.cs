@@ -93,7 +93,7 @@ namespace BLE2TCP
             _log =log;
             _status = status;
             _transport = transport;
-            _watcher = new DEVWatcher(_log,_transport);
+            _watcher = new DEVWatcher(_log,_status,_transport);
             _indexer = new BLEIndexer();
 
             _proctab = new Dictionary<PacketOpCode, ProcessPacketDelegate>
@@ -121,6 +121,10 @@ namespace BLE2TCP
 
 
             };
+        }
+
+        public IWatcher Watcher
+        {   get { return _watcher; }
         }
 
 

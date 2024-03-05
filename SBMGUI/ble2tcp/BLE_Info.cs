@@ -188,12 +188,15 @@ namespace BLE2TCP
 
 
 
-    class BLEDeviceInfo
+    class BLEDeviceInfo:IDeviceInfo
     {
         public BLEDeviceInfo(DeviceInformation deviceInfoIn)
         {
             DeviceInformation = deviceInfoIn;
         }
+
+        [JsonIgnore]
+        public string InterfaceName => "BLE";
 
         [JsonIgnore]
         public DeviceInformation DeviceInformation { get; private set; }
@@ -206,18 +209,26 @@ namespace BLE2TCP
 
         [JsonPropertyName("is_paired")]
         public bool IsPaired => DeviceInformation.Pairing.IsPaired;
+
         [JsonPropertyName("is_connected")]
         public bool IsConnected => (bool?)DeviceInformation.Properties["System.Devices.Aep.IsConnected"] == true;
+
         [JsonPropertyName("is_connectable")]
         public bool IsConnectable => (bool?)DeviceInformation.Properties["System.Devices.Aep.Bluetooth.Le.IsConnectable"] == true;
 
         [JsonIgnore]
         public IReadOnlyDictionary<string, object> Properties => DeviceInformation.Properties;
 
-
         public void Update(DeviceInformationUpdate deviceInfoUpdate)
         {
             DeviceInformation.Update(deviceInfoUpdate);
+        }
+
+        [JsonIgnore]
+        public bool IsTDK 
+        {   get
+            {   return DeviceInformation.Name.StartsWith("TDK");
+            }
         }
 
 

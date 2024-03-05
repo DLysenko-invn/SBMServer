@@ -9,5 +9,18 @@
     <Grid>
         <Button Content="Scan" HorizontalAlignment="Left" Height="44" Margin="31,21,0,0" VerticalAlignment="Top" Width="69" Click="ButtonScan_Click"/>
 
+        <ListView  x:Name="_listctrl"  HorizontalAlignment="Left" Height="158" Margin="31,88,0,0" VerticalAlignment="Top" Width="631">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=Name}" Header="Name" Width="200"/>
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=Id}"   Header="Id" Width="100"/>
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=InterfaceName}"   Header="Interface" Width="70"/>
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=IsPaired}"   Header="Pair" Width="70"/>
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=IsConnected}"   Header="Connected" Width="70"/>
+
+                </GridView>
+            </ListView.View>
+        </ListView>
+
     </Grid>
 </local:TabContentBaseControl>

@@ -22,6 +22,7 @@ namespace SBMGUI
         public TabContentBaseControl()
         {
             _core= null;
+
         }
 
         public virtual void SetCore(AppCore core)

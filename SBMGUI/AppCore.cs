@@ -15,6 +15,7 @@ namespace SBMGUI
         AppSettings _cfg;
         Server _server;
         AppCoreStatus _status;
+        Core _core;
 
 
         public AppCore(ConsoleLog log)
@@ -40,8 +41,8 @@ namespace SBMGUI
             ServerStop();
 
             SocketServer t = new SocketServer(_log,_status);
-            Core c = new Core(_log,_status,t);
-            _server = new Server(_log,_status,t,t,c);
+            _core = new Core(_log,_status,t);
+            _server = new Server(_log,_status,t,t,_core);
 
             _server.StartAsNewThread();
         }
@@ -60,7 +61,7 @@ namespace SBMGUI
 
         public void StartWatcher()
         {
-
+            _core.Watcher.Start();
         }
 
         public void OnMainWindowLoaded()
@@ -78,6 +79,8 @@ namespace SBMGUI
         int _connectionscount;
         ulong _rxbytes;
         ulong _txbytes;
+        List<IDeviceInfo> _devices = new List<IDeviceInfo>();
+        IDeviceInfo[] _devarray=new IDeviceInfo[]{};
 
 
         protected virtual void OnPropertyChanged(PropertyChangedEventArgs e) 
@@ -149,9 +152,32 @@ namespace SBMGUI
                 SetPropertyField("TXBytes", ref _txbytes, _txbytes+(uint)incval); 
         }
 
+        public void DeviceFound(IDeviceInfo devinfo)
+        {
+            if (devinfo==null)
+                return;
 
+            if (!devinfo.IsTDK)
+                return;
 
+            _devices.Add(devinfo);
+            Devices = _devices.ToArray();
+        }
 
+        public void DeviceListClear()
+        {
+            _devices = new List<IDeviceInfo>();
+            Devices = _devices.ToArray();
+        }
+
+        public IDeviceInfo[] Devices 
+        {
+            get {  return _devarray; }
+            private set 
+            {   SetPropertyField("Devices", ref _devarray, value);
+            }
+        }
+        
 
         public event PropertyChangedEventHandler PropertyChanged;
 

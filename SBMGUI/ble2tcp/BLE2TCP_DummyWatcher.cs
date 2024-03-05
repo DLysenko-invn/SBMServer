@@ -10,7 +10,7 @@ namespace BLE2TCP
     {
         public bool IsStopped
         {
-            get{ return false;}
+            get{ return true;}
         }
 
         public void Start()

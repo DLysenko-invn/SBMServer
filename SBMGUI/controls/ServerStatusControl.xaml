@@ -6,11 +6,28 @@
              xmlns:local="clr-namespace:SBMGUI"
 
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="297.036" 
+             d:DesignWidth="350.593"
+            
+
+                              
+            >
     <Grid>
 
-        <TextBlock HorizontalAlignment="Left" Height="17" Margin="10,18,0,0" Text="Port:" TextWrapping="Wrap" VerticalAlignment="Top" Width="38"/>
-        <TextBox  x:Name="_portctrl"  HorizontalAlignment="Left" Height="17" Margin="53,18,0,0" Text="TextBox" TextWrapping="Wrap" VerticalAlignment="Top" Width="107" IsReadOnly="True"/>
+        <TextBlock HorizontalAlignment="Left" Height="17" Margin="10,18,0,0" Text="Port" TextWrapping="Wrap" VerticalAlignment="Top" Width="50"/>
+        <TextBox  x:Name="_portctrl"  HorizontalAlignment="Left" Height="17" Margin="77,18,0,0" Text="TextBox" TextWrapping="Wrap" VerticalAlignment="Top" Width="176" IsReadOnly="True"/>
+
+        <TextBlock HorizontalAlignment="Left" Height="17" Margin="10,52,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="62"><Run Text="Status"/><LineBreak/><Run/></TextBlock>
+        <TextBox  x:Name="_conncountctrl"  HorizontalAlignment="Left" Height="17" Margin="77,52,0,0" Text="TextBox" TextWrapping="Wrap" VerticalAlignment="Top" Width="178" IsReadOnly="True"/>
+
+        <TextBlock HorizontalAlignment="Left" Height="17" Margin="10,82,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="62"><Run Text="Rx bytes"/><LineBreak/><Run/></TextBlock>
+        <TextBox  x:Name="_rxbytesctrl"  HorizontalAlignment="Left" Height="17" Margin="77,82,0,0" Text="TextBox" TextWrapping="Wrap" VerticalAlignment="Top" Width="178" IsReadOnly="True"/>
+
+        <TextBlock HorizontalAlignment="Left" Height="17" Margin="10,114,0,0" Text="Tx bytes" TextWrapping="Wrap" VerticalAlignment="Top" Width="62"/>
+        <TextBox  x:Name="_txbytesctrl"  HorizontalAlignment="Left" Height="17" Margin="77,114,0,0" Text="TextBox" TextWrapping="Wrap" VerticalAlignment="Top" Width="176" IsReadOnly="True"/>
+
+        <Button Content="Start" HorizontalAlignment="Left" Height="34" Margin="146,155,0,0" VerticalAlignment="Top" Width="107" Click="ButtonStart_Click"/>
+        <Button Content="Stop" HorizontalAlignment="Left" Height="34" Margin="10,155,0,0" VerticalAlignment="Top" Width="99" Click="ButtonStop_Click"/>
 
 
     </Grid>

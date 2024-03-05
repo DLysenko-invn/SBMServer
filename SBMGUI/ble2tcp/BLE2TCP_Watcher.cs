@@ -24,6 +24,9 @@ namespace BLE2TCP
 
         void WatcherDeviceFound<T>(T dev) where T : class;
         void WatcherStopped<T>(T sender) where T : class;
+        void WatcherStarted<T>(T sender) where T : class;
+
+        
 
     }
 
@@ -33,37 +36,51 @@ namespace BLE2TCP
     {
         ILog _log;
         IPacketSender _transport;
-        BLEWatcher _ble;
-        //USBWatcher _usb;
-        IWatcher _usb;
+        IServerStatus _status;
+        IWatcher[] _watchers; 
 
-        public DEVWatcher(ILog log, IPacketSender transport)
+        public DEVWatcher(ILog log, IServerStatus status, IPacketSender transport)
         {
             _log = log;
+            _status = status;
             _transport = transport;
-            _ble = new BLEWatcher(this);
-            //_usb = new USBWatcher(this);
-            _usb = new DummyWatcher();
 
+            BLEWatcher ble = new BLEWatcher(this);
+            //USBWatcher usb = new USBWatcher(this);
+            IWatcher usb = new DummyWatcher();
+
+            _watchers = new IWatcher[]{ ble, usb };
 
         }
 
 
         public bool IsStopped
         { 
-            get { return ((_ble.IsStopped) && (_usb.IsStopped)); }     
+            get 
+            { 
+                foreach(IWatcher w in _watchers)
+                    if (!w.IsStopped)
+                        return false;
+                return true; 
+            }     
         }
 
         public void Stop()
         { 
-            _ble.Stop();
-            _usb.Stop();
+            foreach(IWatcher w in _watchers)
+                if (!w.IsStopped)
+                    w.Stop();
         }
 
         public void Start()
         {
-            _ble.Start();
-            _usb.Start();
+            if (!IsStopped)    
+                return;
+
+            _status.DeviceListClear();
+
+            foreach(IWatcher w in _watchers)
+                w.Start();
 
         }
 
@@ -75,6 +92,10 @@ namespace BLE2TCP
         public void WatcherDeviceFound<T>(T dev) where T : class
         {
             //Debug.Assert((dev is BLEDeviceInfo) || (dev is USBDeviceInfo));
+
+            
+            _status.DeviceFound(dev as IDeviceInfo);
+
             _transport.SendPacket(PM.DeviceFound(dev));
 
         }
@@ -90,5 +111,13 @@ namespace BLE2TCP
                 _transport.SendPacket(PM.Indication(PacketOpCode.watcher_stopped));
 
         }
+
+        public void WatcherStarted<T>(T sender) where T : class
+        {
+            
+        }
+
+
+
     }
 }

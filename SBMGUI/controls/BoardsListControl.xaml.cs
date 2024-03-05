@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Text;
 using System.Windows;
@@ -24,11 +25,43 @@ namespace SBMGUI
             InitializeComponent();
         }
 
+
+        public override void SetCore(AppCore core)
+        {
+            base.SetCore( core );
+
+            core.Status.PropertyChanged+=Status_PropertyChangedUnsafe;
+
+        }
+
+        private void Status_PropertyChangedUnsafe(object sender, PropertyChangedEventArgs e)
+        {
+            this.Dispatcher.Invoke(()=>{ Status_PropertyChanged(sender, e); });  
+        }
+
+
+
+
+        private void Status_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName!="Devices")
+                return;
+            
+
+            _listctrl.ItemsSource = _core.Status.Devices;
+            
+
+        }
+
+
         private void ButtonScan_Click(object sender, RoutedEventArgs e)
         {
             Debug.Assert(_core!=null);
 
             _core.StartWatcher();
+
+            _listctrl.ItemsSource = _core.Status.Devices;
+
         }
     }
 }
