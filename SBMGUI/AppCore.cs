@@ -84,6 +84,7 @@ namespace SBMGUI
         ulong _txbytes;
         List<IDeviceInfo> _devices = new List<IDeviceInfo>();
         IDeviceInfo[] _devarray=new IDeviceInfo[]{};
+        bool _iswatcheractive;
 
 
         protected virtual void OnPropertyChanged(PropertyChangedEventArgs e) 
@@ -122,8 +123,7 @@ namespace SBMGUI
         {
             get { return _connectionscount; }
             set 
-            {   if (value!=_connectionscount)
-                    SetPropertyField("ConnectionsCount", ref _connectionscount, value); 
+            {   SetPropertyField("ConnectionsCount", ref _connectionscount, value); 
             }
         }
 
@@ -141,8 +141,7 @@ namespace SBMGUI
             if (incval==IServerStatus.RESET)
             {   SetPropertyField("RXBytes", ref _rxbytes, (ulong)0); 
             } else
-            if (incval!=0)
-                SetPropertyField("RXBytes", ref _rxbytes, _rxbytes+(uint)incval); 
+            SetPropertyField("RXBytes", ref _rxbytes, _rxbytes+(uint)incval); 
         }
 
 
@@ -151,8 +150,7 @@ namespace SBMGUI
             if (incval==IServerStatus.RESET)
             {   SetPropertyField("TXBytes", ref _txbytes, (ulong)0); 
             } else
-            if (incval!=0)
-                SetPropertyField("TXBytes", ref _txbytes, _txbytes+(uint)incval); 
+            SetPropertyField("TXBytes", ref _txbytes, _txbytes+(uint)incval); 
         }
 
         public void DeviceFound(IDeviceInfo devinfo)
@@ -180,7 +178,16 @@ namespace SBMGUI
             {   SetPropertyField("Devices", ref _devarray, value);
             }
         }
-        
+
+        public bool IsWatcherActive   
+        {
+            get
+            {   return _iswatcheractive;
+            }
+            set
+            {   SetPropertyField("IsWatcherActive", ref _iswatcheractive, value);
+            } 
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
 

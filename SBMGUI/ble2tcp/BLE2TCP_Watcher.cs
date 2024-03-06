@@ -119,13 +119,24 @@ namespace BLE2TCP
             //Debug.Assert((sender is BLEWatcher) || (sender is USBWatcher));
 
             if (IsStopped)
+            { 
+                _status.IsWatcherActive = false;
                 _transport.SendPacket(PM.Indication(PacketOpCode.watcher_stopped));
+            }
 
         }
 
         public void WatcherStarted<T>(T sender) where T : class
         {
-            
+
+            bool isstarted = false;
+            foreach(IWatcher w in _watchers)
+                if (!w.IsStopped)
+                    isstarted = true;
+
+            if (isstarted)
+                _status.IsWatcherActive = true;
+
         }
 
 

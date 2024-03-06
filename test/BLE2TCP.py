@@ -58,21 +58,7 @@ class PacketWaitObject:
 
 class BLEWatcherList:
 
-    TEXT_DELIM = " "
-    TEXT_SMARTBUG = "SmartBug"
-    TEXT_BLE = "BLE"
-    TEXT_SERIAL = "USB"
-    TEXT_UNKNOWN = "Unknown"
-    TEXT_DEVICE = "Device"
-    TEXT_INDEX = "#"
 
-    MARK_SMARTBUG = "smartbug"
-    MARK_BLE = "BluetoothLE#BluetoothLE"
-    MARK_SERIAL = "\\\\?\\"
-    MARK_VIDPIDLIST = ["VID_1915&PID_520F"]
-    MARK_COM = "com"
-
-    TMP = 1
 
     def __init__(self):
         self.mutex = threading.Lock()
@@ -90,61 +76,9 @@ class BLEWatcherList:
                 return devinfo
         return None
 
-    def FindByShortIdUnsafe(self,shortid:str)->dict:
-        for devinfo in self.devlist:
-            if (devinfo["id"]==shortid):
-                return devinfo
-        return None
 
 
-#Device found "COM4" - "\\?\BTHENUM#{00001101-0000-1000-8000-00805F9B34FB}_LOCALMFG&0000#7&ECA461D&0&000000000000_0000000A#{86e0d1e0-8089-11d0-9ce4-08003e301f73}"
-#Device found "TDK - Smartbug2" - "BluetoothLE#BluetoothLE00:28:f8:93:14:84-6d:0f:ba:00:09:68"
-#Device found "TDK - Smartbug2" - "BluetoothLE#BluetoothLE00:28:f8:93:14:84-6d:0f:ba:00:00:14"
-#Device found "TDK - Smartbug2" - "BluetoothLE#BluetoothLE00:28:f8:93:14:84-6d:0f:ba:00:00:16"
-#Device found "" - "BluetoothLE#BluetoothLE00:28:f8:93:14:84-71:3e:59:e0:cc:b6"
-#Device found "COM3" - "\\?\PCI#VEN_8086&DEV_9D3D&SUBSYS_07A81028&REV_21#3&11583659&0&B3#{86e0d1e0-8089-11d0-9ce4-08003e301f73}"
-#Device found "COM11" - "\\?\USB#VID_1915&PID_520F&MI_01#6&161E5CA0&0&0001#{86e0d1e0-8089-11d0-9ce4-08003e301f73}"
-#Device found "" - "BluetoothLE#BluetoothLE00:28:f8:93:14:84-61:dc:1e:c7:ce:65"
-#Device found "" - "BluetoothLE#BluetoothLE00:28:f8:93:14:84-f1:de:72:77:fb:09"
-#Device found "" - "BluetoothLE#BluetoothLE00:28:f8:93:14:84-4c:12:dd:4a:25:98"
-#Device found "" - "BluetoothLE#BluetoothLE00:28:f8:93:14:84-d0:0d:ee:e3:28:8f"
-
-
-    def MakeShortIdUniqueUnsafe(self,shortid0:str)->str:
-        index = 0
-        while(True):
-            shortid = shortid0 + ( "" if index==0 else (self.TEXT_DELIM + self.TEXT_INDEX + str(index)) )
-            if (self.FindByShortIdUnsafe(shortid)==None ):
-                break
-            index+=1
-            if (index>1000):
-                raise Exception('Fatal Indexing Device Error')
-            continue
-        return shortid
-
-
-    def MakeShortIdUnsafe(self,name:str,rawid:str)->str:
-        devtype = self.TEXT_UNKNOWN
-        devsuffix = ""
-        if  rawid.lower().startswith( self.MARK_BLE.lower()) :
-            devtype = self.TEXT_BLE
-            if (len(rawid)>11):
-                devsuffix = self.TEXT_DELIM + (rawid[-11:]).upper()
-        if  rawid.lower().startswith( self.MARK_SERIAL.lower()) :
-            devtype = self.TEXT_SERIAL
-            devsuffix = self.TEXT_DELIM + name
-
-        devname = self.TEXT_DEVICE
-        if self.MARK_SMARTBUG.lower() in name.lower(): 
-            devname = self.TEXT_SMARTBUG
-        for vp in self.MARK_VIDPIDLIST:
-            if vp.lower() in rawid.lower():
-                devname = self.TEXT_SMARTBUG
-
-        return self.MakeShortIdUniqueUnsafe(devname + self.TEXT_DELIM + devtype + devsuffix)
-
-
-    def Add(self,name:str,id:str):
+    def Add(self,name:str,id:str,alias:str):
         if (self.isfinalized):
             return
         if (len(name.strip())==0):
@@ -153,9 +87,8 @@ class BLEWatcherList:
         self.mutex.acquire()
         isnew = self.FindByRawIdUnsafe(id)==None
         if (isnew):
-            shortid = self.MakeShortIdUnsafe(name,id)
-            self.devlist.append( {"name":name,"rawid":id, "id": shortid } )
-            print("Device #%03i '%s'" % ( self.index,shortid ) )
+            self.devlist.append( {"name":name,"rawid":id, "id": alias } )
+            print("Device #%03i '%s'" % ( self.index,alias ) )
             self.index+=1
         self.mutex.release()
 
@@ -290,9 +223,8 @@ class BLE2TCP:
 
 
 
-    def OnDeviceFound(self,name,id):
-        #print( 'Device found "%s" - "%s"' %  (  name,id ) )
-        self.watcherdata.Add(name,id)
+    def OnDeviceFound(self,name:str,id:str,alias:str):
+        self.watcherdata.Add(name,id,alias)
 
 
 
@@ -322,13 +254,6 @@ class BLE2TCP:
 
     
     def Connect(self,bledevid,callback_proc=None):
-
-        bledevid_name = bledevid
-        bledevid = self.watcherdata.GetDeviceRawId(bledevid)
-
-        if (bledevid==None) or (len(bledevid)==0):
-            print('Cannot find device ID corresponded the name "%s"' % ( 'NULL' if bledevid_name==None else str(bledevid_name) ) )
-            return None
 
         print('Using BLE device ID "%s"' % bledevid )
 
@@ -426,7 +351,7 @@ class BLE2TCP:
 
         if (pkt.code == Packet.OP_device_found):
             r = Packet.Decode(pkt.data)
-            self.OnDeviceFound(r["name"], r["id"])
+            self.OnDeviceFound(r["name"], r["id"],r["alias"])
             return
 
         if (pkt.code == Packet.OP_watcher_stopped):

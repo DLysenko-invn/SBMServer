@@ -46,11 +46,20 @@ namespace SBMGUI
 
         private void Status_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName!="Devices")
-                return;
-            
+            if (e.PropertyName=="Devices")
+            {
+                _listctrl.ItemsSource = _core.Status.Devices;
 
-            _listctrl.ItemsSource = _core.Status.Devices;
+            }
+            
+            if (e.PropertyName=="IsWatcherActive")
+            {
+                _btnscan.IsEnabled = !_core.Status.IsWatcherActive;
+
+            }
+
+
+            //FillDeviceInfo(null);
             
 
         }
@@ -69,12 +78,39 @@ namespace SBMGUI
         void ListView_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             var item = ((FrameworkElement) e.OriginalSource).DataContext as IDeviceInfo;
-            if (item != null)
-            {
-                Clipboard.SetText(item.Alias);
-            }
+            if (item == null)
+                return;
+
+            Clipboard.SetText(item.Alias);
         }
 
 
+
+        void FillDeviceInfo(IDeviceInfo dev)
+        {
+            if (dev==null)
+            {   _textctrl.Text = string.Empty;
+                return;
+            }
+
+            const string LF = "\r\n";
+            string s = string.Empty;
+
+            s+="Name: "+dev.Name+LF;
+            s+="Id: "+dev.Alias+LF;
+            s+="Windows Id: "+dev.Id+LF;
+            s+="Interface: "+dev.InterfaceName + LF;
+
+            _textctrl.Text = s;
+
+        }
+
+        private void ListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
+
+
+            FillDeviceInfo( _listctrl.SelectedItem as  IDeviceInfo);
+        }
     }
 }

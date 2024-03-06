@@ -73,6 +73,8 @@ namespace BLE2TCP
         void DeviceListClear();
         IDeviceInfo[] Devices {get;}
 
+        bool IsWatcherActive { get;set; }
+
     }
 
     public interface IDeviceInfo

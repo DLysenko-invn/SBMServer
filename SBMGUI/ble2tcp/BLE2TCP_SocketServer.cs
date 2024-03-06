@@ -199,9 +199,11 @@ namespace BLE2TCP
         {
             _status.ConnectionsCount = 0;
 
-            Debug.Assert(_listener != null);
-            bool rc;
+            if (_listener == null)
+                Start();
 
+
+            bool rc;
             try
             {   _log.LogLine("Waiting for a connection @" + _address.ToString() + ":" + _status.Port.ToString() + " ...");
                 _client = _listener.Accept();

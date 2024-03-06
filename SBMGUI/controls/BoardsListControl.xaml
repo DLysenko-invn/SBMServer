@@ -7,9 +7,9 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
-        <Button Content="Scan" HorizontalAlignment="Left" Height="44" Margin="31,21,0,0" VerticalAlignment="Top" Width="69" Click="ButtonScan_Click"/>
+        <Button x:Name="_btnscan" Content="Scan" HorizontalAlignment="Left" Height="44" Margin="31,21,0,0" VerticalAlignment="Top" Width="69" Click="ButtonScan_Click"/>
 
-        <ListView  x:Name="_listctrl"  MouseDoubleClick="ListView_MouseDoubleClick"  HorizontalAlignment="Left" Height="158" Margin="31,88,0,0" VerticalAlignment="Top" Width="631">
+        <ListView  x:Name="_listctrl"  MouseDoubleClick="ListView_MouseDoubleClick" SelectionChanged="ListView_SelectionChanged"   HorizontalAlignment="Left" Height="158" Margin="31,88,0,0" VerticalAlignment="Top" Width="631">
             <ListView.View>
                 <GridView>
                     <GridViewColumn DisplayMemberBinding="{Binding Path=Name}" Header="Name" Width="150"/>
@@ -21,6 +21,8 @@
                 </GridView>
             </ListView.View>
         </ListView>
+        <Button x:Name="_btntest" Content="Test connection" HorizontalAlignment="Left" Height="44" Margin="124,21,0,0" VerticalAlignment="Top" Width="109"/>
+        <TextBox x:Name="_textctrl" HorizontalAlignment="Left" Height="154" Margin="36,263,0,0"  TextWrapping="Wrap" VerticalAlignment="Top" Width="620" FontFamily="Consolas" FontSize="14" BorderBrush="{x:Null}" Background="{x:Null}" IsReadOnly="True"/>
 
     </Grid>
 </local:TabContentBaseControl>

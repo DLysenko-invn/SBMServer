@@ -13,10 +13,6 @@ WAIT_SEC = 60
 CONNECT_WAIT_SEC = 15
 
 
-def FixDeviceId(self,s):
-    s = s.replace("\\","\\\\")
-    s = s.replace("&", "\\u0026")
-    return s
 
 
 
@@ -40,11 +36,8 @@ print("")
 
 print("---")
 devlist = server.GetWatcherList()["devices"]
-for dev in devlist:
-    id = dev["id"]
-    id = id.replace("\\","\\\\")
-    id = id.replace("&", "\\u0026")
-    print( 'DEV_ID = "%s" # %s ' %  (  id,dev["name"] ) )
+print(devlist)
+
 print("---")
 
 print("Closing...")
