@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BLE2TCP;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -12,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+
 
 namespace SBMGUI
 {
@@ -63,5 +65,16 @@ namespace SBMGUI
             _listctrl.ItemsSource = _core.Status.Devices;
 
         }
+
+        void ListView_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            var item = ((FrameworkElement) e.OriginalSource).DataContext as IDeviceInfo;
+            if (item != null)
+            {
+                Clipboard.SetText(item.Alias);
+            }
+        }
+
+
     }
 }

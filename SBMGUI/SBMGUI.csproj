@@ -30,4 +30,8 @@
     </Reference>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="ble2tcp\usb_smartbug\" />
+  </ItemGroup>
+
 </Project>

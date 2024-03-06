@@ -190,10 +190,45 @@ namespace BLE2TCP
 
     class BLEDeviceInfo:IDeviceInfo
     {
+
+        string _alias;
+
         public BLEDeviceInfo(DeviceInformation deviceInfoIn)
-        {
-            DeviceInformation = deviceInfoIn;
+        {   DeviceInformation = deviceInfoIn;
+            CreateAlias();
         }
+
+
+        [JsonPropertyName("is_tdk")]
+        public bool IsTDK 
+        {   get
+            {   return DeviceInformation.Name.StartsWith("TDK");
+            }
+        }
+
+
+        void CreateAlias()    
+        {
+            _alias = string.Empty;
+
+            string[] mac = Id.Split(':');
+            int n = mac.Length;
+            if (n<=4)
+                return;
+            string mactail = mac[n-4] + "-" +mac[n-3] + "-"+mac[n-2] + "-"+mac[n-1];
+            string name = "";
+            if ( Name.ToLower().Contains("smartbug2s") )
+            {   name = "SB2S_"; 
+            } else
+            if ( Name.ToLower().Contains("smartbug2") )
+            {   name = "SB2_"; 
+            } else
+            {   name = "BLE_";
+            }
+            _alias = name+mactail.ToUpper();
+        }
+
+
 
         [JsonIgnore]
         public string InterfaceName => "BLE";
@@ -207,6 +242,7 @@ namespace BLE2TCP
         [JsonPropertyName("name")]
         public string Name => DeviceInformation.Name;
 
+
         [JsonPropertyName("is_paired")]
         public bool IsPaired => DeviceInformation.Pairing.IsPaired;
 
@@ -216,24 +252,21 @@ namespace BLE2TCP
         [JsonPropertyName("is_connectable")]
         public bool IsConnectable => (bool?)DeviceInformation.Properties["System.Devices.Aep.Bluetooth.Le.IsConnectable"] == true;
 
+        [JsonPropertyName("alias")]
+        public string Alias 
+        {   get { return _alias; }
+        }
+
         [JsonIgnore]
         public IReadOnlyDictionary<string, object> Properties => DeviceInformation.Properties;
 
         public void Update(DeviceInformationUpdate deviceInfoUpdate)
-        {
-            DeviceInformation.Update(deviceInfoUpdate);
+        {   DeviceInformation.Update(deviceInfoUpdate);
         }
 
-        [JsonIgnore]
-        public bool IsTDK 
-        {   get
-            {   return DeviceInformation.Name.StartsWith("TDK");
-            }
-        }
 
 
     }
-
 
 
     static class BLEUtilities

@@ -75,6 +75,8 @@ namespace BLE2TCP
 
     class Core : IPacketParser,  BLECallbackProcessor
     {
+        const string ALIAS_TABLE_FILENAME = "alias.json";
+
         delegate PacketBase ProcessPacketDelegate(PacketBase packet); 
         IPacketSender _transport;
         ILog _log;
@@ -82,7 +84,7 @@ namespace BLE2TCP
         IWatcher _watcher;
         BLEIndexer _indexer;
         Dictionary<string, IConnection> _connections = new Dictionary<string, IConnection>();
-
+        DeviceAliasTable _alias;
 
 
         Dictionary<PacketOpCode,ProcessPacketDelegate> _proctab;
@@ -93,7 +95,8 @@ namespace BLE2TCP
             _log =log;
             _status = status;
             _transport = transport;
-            _watcher = new DEVWatcher(_log,_status,_transport);
+            _alias = new DeviceAliasTable(ALIAS_TABLE_FILENAME);
+            _watcher = new DEVWatcher(_log,_status,_transport,_alias);
             _indexer = new BLEIndexer();
 
             _proctab = new Dictionary<PacketOpCode, ProcessPacketDelegate>
@@ -118,13 +121,23 @@ namespace BLE2TCP
                 [BLECallbackAction.Notification   ] = PacketOpCode.notification ,
                 [BLECallbackAction.Connected      ] = PacketOpCode.connected ,
                 [BLECallbackAction.Disconnected   ] = PacketOpCode.disconnect ,
-
-
             };
+
+            if (!_alias.Load())
+               _log.LogWarning("Aliaces table read error.");
+            
+
         }
+
+
+
 
         public IWatcher Watcher
         {   get { return _watcher; }
+        }
+
+        public void Stop()
+        {   _alias.Save();
         }
 
 
@@ -218,27 +231,26 @@ namespace BLE2TCP
             if (i==null)
                 return PM.ResponseError(packet, ResponseCode.ErrorFormat, "Device id expected in the packet payload");
 
+            string devid = _alias.Check(i.Id) ?  _alias.Get(i.Id) : i.Id;
+
             int devindex;
-            if (_connections.ContainsKey(i.Id))
+            if (_connections.ContainsKey(devid))
             {
-                if (_connections[i.Id].IsConnected)
+                if (_connections[devid].IsConnected)
                 {
-                    devindex = _indexer.GetDevIndex(i.Id);
-                    return PM.ResponseOkDev(packet, devindex, "Connection started", i.Id, ResponseCode.AlreadyStarted);
+                    devindex = _indexer.GetDevIndex(devid);
+                    return PM.ResponseOkDev(packet, devindex, "Connection started", devid, ResponseCode.AlreadyStarted);
                 }
 
-                IConnection c = _connections[i.Id];
-                _connections.Remove(i.Id);
+                IConnection c = _connections[devid];
+                _connections.Remove(devid);
                 c.Dispose();
             }
 
-            _connections[i.Id] = ConnectionFactory.Create(_log, i.Id , this);
-            
-            devindex = _indexer.GetDevIndex(i.Id);
-
-            _transport.SendPacket(PM.ResponseOkDev(packet, devindex, "Connection started", i.Id));
-
-            _connections[i.Id].Connect();
+            _connections[devid] = ConnectionFactory.Create(_log, devid , this);
+            devindex = _indexer.GetDevIndex(devid);
+            _transport.SendPacket(PM.ResponseOkDev(packet, devindex, "Connection started", devid));
+            _connections[devid].Connect();
 
             return null;
 

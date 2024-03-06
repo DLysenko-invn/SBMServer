@@ -89,6 +89,14 @@ namespace BLE2TCP
         bool IsPaired { get; }
         bool IsConnectable { get; }
 
+        string Alias{ get;}
+
+    }
+
+
+    public interface IDeviceAliasTable
+    {
+        void RememberAlias(IDeviceInfo dev);    
     }
 
 

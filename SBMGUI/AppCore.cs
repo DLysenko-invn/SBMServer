@@ -56,6 +56,9 @@ namespace SBMGUI
             _server.Stop();
             _server = null;
 
+            _core.Stop();
+            _core = null;
+
         }
 
 

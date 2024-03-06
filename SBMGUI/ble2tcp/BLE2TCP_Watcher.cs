@@ -32,18 +32,22 @@ namespace BLE2TCP
 
 
 
+
+
     class DEVWatcher: IParentWatcher, IWatcher
     {
         ILog _log;
         IPacketSender _transport;
         IServerStatus _status;
         IWatcher[] _watchers; 
+        IDeviceAliasTable _aliastab;
 
-        public DEVWatcher(ILog log, IServerStatus status, IPacketSender transport)
+        public DEVWatcher(ILog log, IServerStatus status, IPacketSender transport,IDeviceAliasTable aliastab)
         {
             _log = log;
             _status = status;
             _transport = transport;
+            _aliastab = aliastab;
 
             BLEWatcher ble = new BLEWatcher(this);
             //USBWatcher usb = new USBWatcher(this);
@@ -89,12 +93,19 @@ namespace BLE2TCP
         {   get { return _log;}
         }
 
+
+        
+
+
+
         public void WatcherDeviceFound<T>(T dev) where T : class
         {
             //Debug.Assert((dev is BLEDeviceInfo) || (dev is USBDeviceInfo));
 
-            
-            _status.DeviceFound(dev as IDeviceInfo);
+            IDeviceInfo d = dev as IDeviceInfo;
+    
+            _aliastab.RememberAlias(d);
+            _status.DeviceFound(d);
 
             _transport.SendPacket(PM.DeviceFound(dev));
 
