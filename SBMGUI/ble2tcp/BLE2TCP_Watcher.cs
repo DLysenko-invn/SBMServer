@@ -50,8 +50,8 @@ namespace BLE2TCP
             _aliastab = aliastab;
 
             BLEWatcher ble = new BLEWatcher(this);
-            //USBWatcher usb = new USBWatcher(this);
-            IWatcher usb = new DummyWatcher();
+            USBWatcher usb = new USBWatcher(this);
+            //IWatcher usb = new DummyWatcher();
 
             _watchers = new IWatcher[]{ ble, usb };
 
@@ -104,6 +104,8 @@ namespace BLE2TCP
 
             IDeviceInfo d = dev as IDeviceInfo;
     
+            Debug.Assert(d!=null);
+
             _aliastab.RememberAlias(d);
             _status.DeviceFound(d);
 

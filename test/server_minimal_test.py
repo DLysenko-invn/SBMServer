@@ -28,7 +28,7 @@ PORT = 65432
 
 
 DEV_ID = "SB2S_BA-00-00-14" 
-
+DEV_ID = "COM10" 
 
  
 

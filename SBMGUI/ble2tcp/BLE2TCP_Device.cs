@@ -1,4 +1,4 @@
-﻿//using BLE2TCP.BLEEMU;
+﻿using BLE2TCP.BLEEMU;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -35,7 +35,10 @@ namespace BLE2TCP
         { 
             return id.ToLower().Contains("bluetooth");
         }
-
+        static bool IsSerial(string id)
+        { 
+            return id.ToLower().Contains("usb#");
+        }
 
         public static IConnection Create(ILog log, string devid, BLECallbackProcessor proc)
         { 
@@ -43,11 +46,10 @@ namespace BLE2TCP
             if (IsBluetooth(devid))
                 return new BLEConnection(log,devid,proc);
 
+            if (IsSerial(devid))
+                return new USBConnection(log, devid, proc);
+
             return null;
-
-
-            //devid = @"\\?\USB#VID_1915&PID_520F&MI_01#6&21BAB72C&1&0001#{86e0d1e0-8089-11d0-9ce4-08003e301f73}";
-            //return new USBConnection(log, devid, proc);
 
         }
 

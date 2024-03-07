@@ -247,7 +247,9 @@ namespace BLE2TCP
                 c.Dispose();
             }
 
-            _connections[devid] = ConnectionFactory.Create(_log, devid , this);
+            IConnection newconn = ConnectionFactory.Create(_log, devid , this);
+            Debug.Assert(newconn!=null);
+            _connections[devid] = newconn;
             devindex = _indexer.GetDevIndex(devid);
             _transport.SendPacket(PM.ResponseOkDev(packet, devindex, "Connection started", devid));
             _connections[devid].Connect();
