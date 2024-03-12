@@ -17,6 +17,9 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 using System.Threading;
+using System.Diagnostics;
+using System.ComponentModel;
+using BLE2TCP;
 
 namespace SBMGUI
 {
@@ -31,38 +34,67 @@ namespace SBMGUI
 //        TaskbarIcon _tbi;
 
         AppCore _core;
+        System.Windows.Forms.NotifyIcon _trayicon;
+        System.Drawing.Icon _iconstop,_iconwaiting,_iconconnected,_iconwarning;
 
         public MainWindow()
         {
             InitializeComponent();
 
-            /*
-                Icon i = new System.Drawing.Icon("Error.ico");
-                //Icon i = new Icon(System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("Error.ico"));
-                _tbi = new TaskbarIcon();
-                _tbi.Icon = i;
-                _tbi.ToolTipText = "hello world";
+            _iconstop      = LoadIcon("SBMGUI.images.close.ico");
+            _iconwaiting   = LoadIcon("SBMGUI.images.checked.ico");
+            _iconconnected = LoadIcon("SBMGUI.images.play.ico");
+            _iconwarning   = LoadIcon("SBMGUI.images.warning.ico");
 
-            */
+            _trayicon = new System.Windows.Forms.NotifyIcon();
+            _trayicon.Icon = _iconwarning ;
+            _trayicon.Visible = true;
+            _trayicon.DoubleClick += 
+                delegate(object sender, EventArgs args)
+                {
+                    this.Show();
+                    this.WindowState = WindowState.Normal;
+                };
+
 
 
             this.Loaded+=MainWindow_Loaded;
             this.Closed+=MainWindow_Closed;
 
-
-
-
-
+            
 
 
             
 
         }
 
+        System.Drawing.Icon LoadIcon(string path)
+        {
+            System.IO.Stream st;
+            System.Reflection.Assembly a = System.Reflection.Assembly.GetExecutingAssembly();
+            st = a.GetManifestResourceStream(path);
+            Debug.Assert(st!=null);
+            return  new System.Drawing.Icon(st); 
+        }
+
+
+        protected override void OnStateChanged(EventArgs e)
+        {
+            if (WindowState == System.Windows.WindowState.Minimized)
+                this.Hide();
+
+            base.OnStateChanged(e);
+        }
+
+
+
+
         private void MainWindow_Closed(object sender, EventArgs e)
         {
             _core?.Dispose();
             _core = null;
+
+            _trayicon.Dispose();
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -76,10 +108,36 @@ namespace SBMGUI
             _core.OnMainWindowLoaded();
 
 
+            _core.Status.PropertyChanged+=Status_PropertyChangedUnsafe;
+
+
 
 
 
         }
+
+
+        private void Status_PropertyChangedUnsafe(object sender, PropertyChangedEventArgs e)
+        {
+            this.Dispatcher.Invoke(()=>{ Status_PropertyChanged(sender, e); });  
+        }
+
+
+        private void Status_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+
+            if (e.PropertyName=="ConnectionsCount")
+                if (_core.Status.ConnectionsCount == IServerStatus.SERVER_STOPPED)
+                {   _trayicon.Icon = _iconstop ;
+                } else
+                if (_core.Status.ConnectionsCount == 0)
+                {   _trayicon.Icon = _iconwaiting ;
+                } else
+                {   _trayicon.Icon = _iconconnected;
+                }
+
+        }
+
 
 
     }

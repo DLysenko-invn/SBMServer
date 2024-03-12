@@ -9,12 +9,17 @@
 
   <ItemGroup>
     <None Remove="Error.ico" />
+    <None Remove="images\checked.ico" />
+    <None Remove="images\close.ico" />
+    <None Remove="images\play.ico" />
+    <None Remove="images\warning.ico" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Error.ico">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
+    <EmbeddedResource Include="images\checked.ico" />
+    <EmbeddedResource Include="images\close.ico" />
+    <EmbeddedResource Include="images\play.ico" />
+    <EmbeddedResource Include="images\warning.ico" />
   </ItemGroup>
 
   <ItemGroup>
