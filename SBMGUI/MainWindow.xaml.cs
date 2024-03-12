@@ -108,18 +108,12 @@ namespace SBMGUI
             _core.OnMainWindowLoaded();
 
 
-            _core.Status.PropertyChanged+=delegate(object sender, PropertyChangedEventArgs e){    this.Dispatcher.Invoke(()=>{ Status_PropertyChanged(sender, e); }); };
+            _core.Status.PropertyChanged+=delegate(object s, PropertyChangedEventArgs e){    this.Dispatcher.Invoke(()=>{ Status_PropertyChanged(s, e); }); };
 
             
 
 
 
-        }
-
-
-        private void Status_PropertyChangedUnsafe(object sender, PropertyChangedEventArgs e)
-        {
-            this.Dispatcher.Invoke(()=>{ Status_PropertyChanged(sender, e); });  
         }
 
 
