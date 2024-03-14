@@ -97,7 +97,7 @@ namespace BLE2TCP.BLEEMU
 
         bool Get()
         {
-            Talk t = _transport.MakeATalk(USBProtocolEncode.SIFDataRead());
+            SBTalk t = _transport.MakeATalk(USBProtocolEncode.SIFDataRead());
             t.WaitTillDone(USBPebbleAsBLE.DEFAULT_TIMEOUT_MS);
             if (!t.IsDoneOK)
                 return false;
@@ -119,7 +119,7 @@ namespace BLE2TCP.BLEEMU
                 Set(SIFOperation.Disable, null);
                 _isenabled = false;
             }
-            Talk tt = _transport.MakeATalk(USBProtocolEncode.SIFDataWrite(cmd, datachunk));
+            SBTalk tt = _transport.MakeATalk(USBProtocolEncode.SIFDataWrite(cmd, datachunk));
             tt.WaitTillDone(USBPebbleAsBLE.DEFAULT_TIMEOUT_MS);
             if (tt.IsDoneOK)
             {

@@ -8,7 +8,7 @@ namespace BLE2TCP.BLEEMU
 
     interface ITalkMaker
     { 
-        Talk MakeATalk(Packet packettosend);
+        SBTalk MakeATalk(Packet packettosend);
     }
 
     interface IPacketProcessor

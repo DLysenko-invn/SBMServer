@@ -32,8 +32,8 @@ namespace BLE2TCP.BLEEMU
         protected string _uuid;
         IUSBTransport _transport;
         protected Packet _currpkt;
-        Talk _currtalk;
-        Queue<Talk> _talkstomake = new Queue<Talk>();
+        SBTalk _currtalk;
+        Queue<SBTalk> _talkstomake = new Queue<SBTalk>();
         Dictionary<string,IFakeService> _serv = new Dictionary<string, IFakeService>();
         CmdInfo[] _protcmdinfodata;
         Dictionary<CmdId, CmdInfo> _prot = new Dictionary<CmdId, CmdInfo>();
@@ -47,7 +47,7 @@ namespace BLE2TCP.BLEEMU
             _proc = proc;
             _uuid = devid;
             _transport = transport;
-            _currtalk = Talk.NOTALK;
+            _currtalk = SBTalk.NOTALK;
             _currpkt = new Packet();
 
 
@@ -125,7 +125,7 @@ namespace BLE2TCP.BLEEMU
             _currpkt = new Packet();
             lock (this)
             {   _talkstomake.Clear();
-                _currtalk = Talk.NOTALK;
+                _currtalk = SBTalk.NOTALK;
             }
         }
 
@@ -237,7 +237,7 @@ namespace BLE2TCP.BLEEMU
 
 
                 if (_currtalk.IsDone)
-                {   Talk nextinqueue =  (_talkstomake.Count==0) ? null : _talkstomake.Dequeue();
+                {   SBTalk nextinqueue =  (_talkstomake.Count==0) ? null : _talkstomake.Dequeue();
                     MakeATalkUnsafe(nextinqueue);
                 }
 
@@ -283,13 +283,13 @@ namespace BLE2TCP.BLEEMU
 
         void Log(string a, string s)
         {
-            USBConnection.DebugLogEx(_log, a, s);
+            BaseConnection.DebugLogEx(_log, a, s);
         }
 
 
 
 
-        void MakeATalkUnsafe(Talk t)
+        void MakeATalkUnsafe(SBTalk t)
         { 
             if (t==null)
                 return;
@@ -305,10 +305,10 @@ namespace BLE2TCP.BLEEMU
             _currtalk.Stage = TalkStage.Waiting;
         }
 
-        public Talk MakeATalk(Packet packettosend)
+        public SBTalk MakeATalk(Packet packettosend)
         {
-            Talk t;
-            t = new Talk(packettosend, GetInfo(packettosend.Cmd));
+            SBTalk t;
+            t = new SBTalk(packettosend, GetInfo(packettosend.Cmd));
             t.Stage = TalkStage.InQueue;
             t.timeout_ms = DEFAULT_TIMEOUT_MS;
             t.starttime = DateTime.Now;

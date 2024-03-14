@@ -101,7 +101,7 @@ namespace BLE2TCP.BLEEMU
 
         bool Get()
         {
-            Talk t = _transport.MakeATalk(USBProtocolEncode.IMUDataRead());
+            SBTalk t = _transport.MakeATalk(USBProtocolEncode.IMUDataRead());
             t.WaitTillDone(USBPebbleAsBLE.DEFAULT_TIMEOUT_MS);
             if (!t.IsDoneOK)
                 return false;
@@ -127,7 +127,7 @@ namespace BLE2TCP.BLEEMU
             int odr = newaccodr==null ? _odr : (int)newaccodr;
             int fsr = newaccfsrenum==null ? _fsr : (int)newaccfsrenum;
             bool  isenable = newisenable == null ? _isenabled : (bool)newisenable;
-            Talk tt = _transport.MakeATalk(USBProtocolEncode.IMUDataWrite(isenable, (UInt16)odr, (byte)fsr));
+            SBTalk tt = _transport.MakeATalk(USBProtocolEncode.IMUDataWrite(isenable, (UInt16)odr, (byte)fsr));
             tt.WaitTillDone(USBPebbleAsBLE.DEFAULT_TIMEOUT_MS);
             if (tt.IsDoneOK)
             {   _isenabled = isenable;

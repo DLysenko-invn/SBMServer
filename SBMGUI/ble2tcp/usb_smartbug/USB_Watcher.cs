@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BLE2TCP.BLEEMU;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text;
@@ -28,7 +29,7 @@ namespace BLE2TCP
     class USBDeviceInfo:IDeviceInfo
     {
 
-        const string VIDPIDMARK = "VID_1915&PID_520F";
+
 
         string _id,_portname,_name; 
         string _alias;
@@ -66,7 +67,8 @@ namespace BLE2TCP
         [JsonPropertyName("is_tdk")]
         public bool IsTDK 
         {   get
-            {   return _id.ToUpper().Contains(VIDPIDMARK);
+            {   
+                return SBUSBConnection.CheckDeviceId(_id) || DPUSBConnection.CheckDeviceId(_id);
             }
         }
 

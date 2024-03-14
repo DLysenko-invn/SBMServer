@@ -35,19 +35,28 @@ namespace BLE2TCP
         { 
             return id.ToLower().Contains("bluetooth");
         }
-        static bool IsSerial(string id)
+        static bool IsSerialSB(string id)
+        { 
+
+            return id.ToLower().Contains("usb#");
+        }
+        static bool IsSerialDP(string id)
         { 
             return id.ToLower().Contains("usb#");
         }
+
 
         public static IConnection Create(ILog log, string devid, BLECallbackProcessor proc)
         { 
         
             if (IsBluetooth(devid))
-                return new BLEConnection(log,devid,proc);
+                return new BLEConnection(log, devid, proc);
 
-            if (IsSerial(devid))
-                return new USBConnection(log, devid, proc);
+            if (IsSerialSB(devid))
+                return new SBUSBConnection(log, devid, proc);
+
+            if (IsSerialDP(devid))
+                return new DPUSBConnection(log, devid, proc);
 
             return null;
 
@@ -109,7 +118,6 @@ namespace BLE2TCP
         protected ILog _log;
         protected BLECallbackProcessor _proc;
         protected string _uuid;
-
 
 
         protected bool Init(ILog log, string devid, BLECallbackProcessor proc)

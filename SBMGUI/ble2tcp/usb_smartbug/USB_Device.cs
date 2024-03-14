@@ -64,39 +64,58 @@ namespace BLE2TCP.BLEEMU
 
 
 
-
-
-
-
-
-
-    class USBConnection : BaseConnection, IConnection, IUSBTransport, BLECallbackProcessor
+    class SBUSBConnection : USBConnection
     {
 
-        SerialDevice _dev;
+        const string VIDPIDMARK = "VID_1915&PID_520F";
+
+        protected override uint BAUD => 460800;
+
+        public static bool CheckDeviceId(string devid)
+        {
+            return devid.ToUpper().Contains(VIDPIDMARK);
+        }
+
+        public SBUSBConnection(ILog log, string devid, BLECallbackProcessor proc):base(log, devid, proc)
+        {
+            if (_initresult)
+            { 
+                _prot = new USBPebbleAsBLE(log, devid, this ,this);
+            }
+        }
+
+
+    }
+
+
+
+
+
+    abstract class USBConnection : BaseConnection, IConnection, IUSBTransport, BLECallbackProcessor
+    {
+
+        protected SerialDevice _dev;
         DataReader _reader;
         DataWriter _writer;
         Thread _readthread;
         bool _iskeepreading;
         System.Timers.Timer _protocolmonitor;
         const int PROTOCOLCHECKTIME_MS = 3000;
-        const uint BAUD = 460800;
+
         const uint READTIMEOUT_MS = 1000;
         const uint WRITETIMEOUT_MS = 1000;
 
 
-        IUSBtoBLEProtocol _prot;
+        protected IUSBtoBLEProtocol _prot;
+
+        abstract protected uint BAUD { get; }
+
+        protected bool _initresult=false;
 
         public USBConnection(ILog log, string devid, BLECallbackProcessor proc)
         {
-            if (!Init(log, devid, proc))
-                return;
-
-            _prot = new USBPebbleAsBLE(log, devid, this ,this);
-
+            _initresult = Init(log, devid, proc);
             _dev = null;
-
-
         }
 
 
