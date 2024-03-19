@@ -16,7 +16,7 @@ namespace BLE2TCP.BLEEMU
         IFakeCharacteristic _rw;
         IFakeCharacteristic _n;
 
-        public FakeServiceIMU(BLECallbackProcessor proc, ITalkMaker transport)
+        public FakeServiceIMU(BLECallbackProcessor proc, ISBTalkMaker transport)
         {
             FakeCharacteristicIMURW rw = new FakeCharacteristicIMURW(this, transport);
             _rw = AddChar(rw);
@@ -34,7 +34,7 @@ namespace BLE2TCP.BLEEMU
 
 
 
-    class FakeCharacteristicIMUNotify : FakeCharacteristicBase
+    class FakeCharacteristicIMUNotify : FakeCharacteristicBase, ISBPacketProcessor
     {
 
         override public string UUID { get { return "00000101-2000-1000-8000-cec278b6b50a"; } }
@@ -57,7 +57,7 @@ namespace BLE2TCP.BLEEMU
         }
 
 
-        override public void ProcessPacket(Packet p)
+        public void ProcessPacket(Packet p)
         {
             USBProtocolDecode.IMUEvent(p, out UInt64 ts, out Int16 x,out Int16 y,out Int16 z);
             byte[] data = BLEProtocolEncode.IMUEvent((UInt32)ts, x,y,z);
@@ -71,7 +71,7 @@ namespace BLE2TCP.BLEEMU
     {
         override public string UUID { get { return "00000102-2000-1000-8000-cec278b6b50a"; } }
 
-        ITalkMaker _transport;
+        ISBTalkMaker _transport;
         bool _isenabled = false;
         bool _isinitialized = false;
         UInt16 _odr=0;
@@ -79,7 +79,7 @@ namespace BLE2TCP.BLEEMU
         //fsr = Const.AccelFSRToValue((Const.AccelFSR)reader.GetByte());
 
 
-        public FakeCharacteristicIMURW(IFakeService parent, ITalkMaker transport) : base(parent)
+        public FakeCharacteristicIMURW(IFakeService parent, ISBTalkMaker transport) : base(parent)
         {
             _transport = transport;
             

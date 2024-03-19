@@ -16,7 +16,7 @@ namespace BLE2TCP.BLEEMU
 
 
 
-    class USBPebbleAsBLE : IUSBtoBLEProtocol , ITalkMaker
+    class USBPebbleAsBLE : IUSBtoBLEProtocol , ISBTalkMaker
     {
 
         #if DEBUG
@@ -256,8 +256,9 @@ namespace BLE2TCP.BLEEMU
 
             //todo: check for protocol errors
 
-
-            pi.characteristic.ProcessPacket(p);
+            ISBPacketProcessor pp = pi.characteristic as ISBPacketProcessor;
+            if (pp!=null)
+                pp.ProcessPacket(p);
 
 
 

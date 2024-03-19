@@ -14,9 +14,11 @@ namespace BLE2TCP.BLEEMU
         bool Unsubscribe(string uuid);
         byte[] Read(string uuid);
         bool Write(string uuid, byte[] data);
+        IFakeCharacteristic NotifyCharacteristic {get;}
+
     }
 
-    interface IFakeCharacteristic: IPacketProcessor
+    interface IFakeCharacteristic
     {
         string UUID { get; }
         bool Subscribe();
@@ -28,6 +30,9 @@ namespace BLE2TCP.BLEEMU
         bool Write(byte[] data);
 
     }
+
+    
+
 
     abstract class FakeCharacteristicBase : IFakeCharacteristic
     {
@@ -42,6 +47,12 @@ namespace BLE2TCP.BLEEMU
         {
             Debug.Assert(this.UUID == this.UUID.ToLower());
             _parent = parent;
+            _proc = null;
+        }
+
+        public FakeCharacteristicBase(IFakeService parent,BLECallbackProcessor proc):this(parent)
+        {
+            _proc = proc;
         }
 
         virtual public bool Subscribe()
@@ -71,10 +82,6 @@ namespace BLE2TCP.BLEEMU
 
         }
 
-        virtual public void ProcessPacket(Packet p)
-        { 
-        }
-
 
     }
 
@@ -88,6 +95,12 @@ namespace BLE2TCP.BLEEMU
         {
             Debug.Assert(this.UUID == this.UUID.ToLower());
         }
+
+        public virtual IFakeCharacteristic NotifyCharacteristic
+        {
+            get{    return null; }
+        }
+
 
 
         IFakeCharacteristic Find(string uuid)

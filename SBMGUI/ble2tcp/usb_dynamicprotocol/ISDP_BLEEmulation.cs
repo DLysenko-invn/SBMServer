@@ -8,17 +8,46 @@ namespace BLE2TCP.BLEEMU
 {
 
 
-    class DPTalk:Talk<ISDPFrame,ISDPCmd>
+    interface IDPTalkMaker
+    { 
+        DPTalk MakeATalk(ISDPFrame frametosend);
+    }
+
+    interface IDPPacketProcessor
+    {
+        bool ProcessCommand(ISDPCmd cmd);
+
+    }
+
+
+
+
+    class DPTalk:Talk
     {
         public static DPTalk NOTALK = new DPTalk() { Stage = TalkStage.DoneOk };
+
+        public ISDPCmd   sendcmd;
+        public ISDPCmd   recvcmd;
+        public ISDPFrame recvframe;
+        public ISDPFrame sendframe;
 
         public DPTalk():base()
         {
         }
 
-        public DPTalk(ISDPFrame send, ISDPCmd info):base(send, info)
+        public DPTalk(ISDPFrame frame):this()
         {
+            Debug.Assert(frame != null);
+            sendframe = frame;
+            sendcmd = new ISDPCmd(frame);
+            recvframe = new ISDPFrame();
+            recvcmd = null;
+            Stage = TalkStage.Ready;
         }
+
+
+
+
     }
 
 
@@ -47,8 +76,16 @@ namespace BLE2TCP.BLEEMU
     }
 
 
-    class USBSmartMotionAsBLE :IUSBtoBLEProtocol
+    class USBSmartMotionAsBLE :IUSBtoBLEProtocol, IDPTalkMaker
     {
+
+
+        #if DEBUG
+        public const int DEFAULT_TIMEOUT_MS = 5000;
+        #else
+        public const int DEFAULT_TIMEOUT_MS = 5000;
+        #endif
+
 
         ILog _log;
         BLECallbackProcessor _proc;
@@ -57,6 +94,8 @@ namespace BLE2TCP.BLEEMU
         IUSBTransport _transport;
         ISDPFrame _currframe;
         List<byte> _buf;
+        DPTalk _currtalk;
+        Queue<DPTalk> _talkstomake = new Queue<DPTalk>();
 
 
         public USBSmartMotionAsBLE(ILog log, string devid, BLECallbackProcessor proc, IUSBTransport transport)
@@ -73,7 +112,8 @@ namespace BLE2TCP.BLEEMU
             _buf = new List<byte>();
             Reset();
 
-            FakeServiceBATT     s_bat    = new FakeServiceBATT(proc);
+            FakeServiceBATT          s_bat    = new FakeServiceBATT(proc);
+            ISDP_FakeServiceIMU      s_imu    = new ISDP_FakeServiceIMU(proc,this); 
 /*
             FakeServiceSIF      s_sif    = new ISDP_FakeServiceSIF(proc,this);
             FakeServiceSIFRAW   s_sifraw = new ISDP_FakeServiceSIFRAW(proc, this);
@@ -81,12 +121,10 @@ namespace BLE2TCP.BLEEMU
 */
 
 
-            FakeServiceBase[] servs = new FakeServiceBase[] { s_bat }; //, s_sif, s_sifraw, s_imu };
+            FakeServiceBase[] servs = new FakeServiceBase[] { s_bat, s_imu }; //, s_sif, s_sifraw  };
 
             foreach (FakeServiceBase s in servs)
                 _serv[s.UUID] = s;
-
-
 
 
         }
@@ -124,8 +162,9 @@ namespace BLE2TCP.BLEEMU
 
                 if (_currframe.IsFinished)
                 {
-                    ProcessFrame(_currframe);
+                    ISDPFrame f = _currframe;
                     _currframe = new ISDPFrame();
+                    ProcessFrame(f);
                 }
 
             }
@@ -138,6 +177,11 @@ namespace BLE2TCP.BLEEMU
         {
             _currframe = new ISDPFrame();
             _buf.Clear();
+
+            lock (this)
+            {   _currtalk = DPTalk.NOTALK;
+                _talkstomake.Clear();
+            }
         }
 
 
@@ -155,11 +199,112 @@ namespace BLE2TCP.BLEEMU
         }
 
 
-        void ProcessFrame(ISDPFrame f)
-        {
-            
+
+
+
+
+
+        void MakeATalkUnsafe(DPTalk t)
+        { 
+            if (t==null)
+                return;
+
+            Debug.WriteLine("@@@ MakeATalk " + t.sendcmd.ToString());
+            Debug.Assert(_currtalk.IsDone);
+
+            _currtalk = t;
+            //CommLog("W "+_currtalk.sendcmd.ToString());
+            //Log("Write",_currtalk.sendcmd.ToString());
+            _transport.WriteBytes(_currtalk.sendframe.ToBytes());
+            _currtalk.Stage = TalkStage.Waiting;
+
         }
 
+        public DPTalk MakeATalk(ISDPFrame frametosend)
+        {
+            DPTalk t;
+            t = new DPTalk(frametosend);
+            t.Stage = TalkStage.InQueue;
+            t.timeout_ms = DEFAULT_TIMEOUT_MS;
+            t.starttime = DateTime.Now;
+
+            lock (this)
+            {
+                if (_currtalk.Stage == TalkStage.Waiting)
+                {   _talkstomake.Enqueue(t);
+                    Debug.WriteLine("@@@ MakeATalk Enqueue " + t.sendcmd.ToString());
+                } else
+                {   MakeATalkUnsafe(t);
+                }
+
+            }
+
+            return t;
+
+        }
+
+
+
+
+
+        void ProcessFrame(ISDPFrame f)
+        {
+
+            ISDPCmd cmd = new ISDPCmd(f);
+
+            if (cmd.ETYPE == ISDP.ETYPE_RESP)
+            { 
+
+
+
+                lock (this)
+                {
+                    _currtalk.recvframe = f;
+                    _currtalk.recvcmd = cmd;
+                    _currtalk.Stage = TalkStage.DoneOk;
+
+                }
+
+                return;
+            }
+
+            if (cmd.ETYPE == ISDP.ETYPE_ASYNC)
+            {
+
+                ISDP.Data d = ISDP.Decode(cmd);
+
+                foreach(IFakeService s in _serv.Values)
+                {
+                    IDPPacketProcessor pp = s.NotifyCharacteristic as IDPPacketProcessor;
+                    if (pp==null)
+                        continue;
+                    bool rc = pp.ProcessCommand(cmd);
+                    if (rc)
+                        return;
+                }
+
+                Debug.Assert(false,"unsupported command async type");
+
+                return;
+            }
+
+
+
+
+
+            if (cmd.ETYPE == ISDP.ETYPE_CMD)
+            {
+                Debug.Assert(false,"unsupported command cmd type");
+                //CommLog("? " + p.LogString() );
+                return;
+            }
+
+
+            Debug.Assert(false,"unsupported command");
+            //CommLog("? " + p.LogString() );
+            return;
+            
+        }
 
     }
 

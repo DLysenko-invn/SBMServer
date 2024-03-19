@@ -88,22 +88,36 @@ namespace BLE2TCP.BLEEMU
 
     }
 
-    class SBTalk:Talk<Packet,CmdInfo>
+    class SBTalk:Talk
     {
         public static SBTalk NOTALK = new SBTalk() { Stage = TalkStage.DoneOk };
+
+        public Packet  senddata;
+        public Packet  recvdata;
+        public CmdInfo sendinfo;
+        public CmdInfo recvinfo;
+
 
         public SBTalk():base()
         {
         }
 
-        public SBTalk(Packet send, CmdInfo info):base(send, info)
+        public SBTalk(Packet send, CmdInfo info):this()
         {
+            Debug.Assert(info != null);
+            sendinfo = info;
+            senddata = send;
+            recvdata = new Packet();
+            Stage = TalkStage.Ready;
+
         }
+
+
+
     }
 
 
-    abstract class Talk<PTYPE,CTYPE>
-        where PTYPE : new()
+    abstract class Talk
     {
 
         public Talk()
@@ -113,26 +127,12 @@ namespace BLE2TCP.BLEEMU
 
         }
 
-        public Talk(PTYPE send, CTYPE info):this()
-        {
-            Debug.Assert(info != null);
-            sendinfo = info;
-            senddata = send;
-            recvdata = new PTYPE();
-            Stage = TalkStage.Ready;
-        }
-
         ManualResetEvent _doneevent;
-
-        public PTYPE senddata;
-        public PTYPE recvdata;
-        public CTYPE sendinfo;
-        public CTYPE recvinfo;
         public DateTime starttime;
         public int timeout_ms;
-
-
         TalkStage _stage;
+
+
         public TalkStage Stage
         {
             get { return _stage;}
@@ -175,6 +175,11 @@ namespace BLE2TCP.BLEEMU
 
 
     #region PACKET
+
+
+
+
+
     class Packet
     {
 

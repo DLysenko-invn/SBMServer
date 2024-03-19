@@ -279,6 +279,8 @@ namespace DynamicProtocol
         public const int ETYPE_RESP  = 1;
         public const int ETYPE_ASYNC = 2;
 
+
+        public const int SID_NULL                         = 0  ;
         public const int SID_RESERVED                     = 0  ;
         public const int SID_ACCELEROMETER                = 1  ;
         public const int SID_MAGNETOMETER                 = 2  ;

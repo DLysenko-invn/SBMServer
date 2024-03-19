@@ -16,7 +16,7 @@ namespace BLE2TCP.BLEEMU
         IFakeCharacteristic _rw;
         IFakeCharacteristic _n;
 
-        public FakeServiceSIFRAW(BLECallbackProcessor proc, ITalkMaker transport)
+        public FakeServiceSIFRAW(BLECallbackProcessor proc, ISBTalkMaker transport)
         {
 
             FakeCharacteristicSIFRAW_RW rw = new FakeCharacteristicSIFRAW_RW(this, transport);
@@ -30,7 +30,7 @@ namespace BLE2TCP.BLEEMU
 
 
 
-    class FakeCharacteristicSIFRAW_Notify : FakeCharacteristicBase
+    class FakeCharacteristicSIFRAW_Notify : FakeCharacteristicBase, ISBPacketProcessor
     {
 
         override public string UUID { get { return "00001601-2000-1000-8000-cec278b6b50a"; } }
@@ -53,7 +53,7 @@ namespace BLE2TCP.BLEEMU
         }
 
 
-        override public void ProcessPacket(Packet p)
+        public void ProcessPacket(Packet p)
         {
             USBProtocolDecode.SIFRAWEvent(p, out UInt64 ts, out UInt32 ax, out UInt32 ay, out UInt32 az);
             byte[] data = BLEProtocolEncode.SIFRAWEvent((UInt32)ts, ax,  ay,  az);
@@ -70,12 +70,12 @@ namespace BLE2TCP.BLEEMU
     {
         override public string UUID { get { return "00001a02-2000-1000-8000-cec278b6b50a"; } }
 
-        ITalkMaker _transport;
+        ISBTalkMaker _transport;
         bool? _isenabled;
 
 
 
-        public FakeCharacteristicSIFRAW_RW(IFakeService parent, ITalkMaker transport) : base(parent)
+        public FakeCharacteristicSIFRAW_RW(IFakeService parent, ISBTalkMaker transport) : base(parent)
         {
             _transport = transport;
             _isenabled = null;

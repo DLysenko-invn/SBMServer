@@ -6,12 +6,12 @@ using System.Text;
 namespace BLE2TCP.BLEEMU
 {
 
-    interface ITalkMaker
+    interface ISBTalkMaker
     { 
         SBTalk MakeATalk(Packet packettosend);
     }
 
-    interface IPacketProcessor
+    interface ISBPacketProcessor
     {
         void ProcessPacket(Packet p);
 

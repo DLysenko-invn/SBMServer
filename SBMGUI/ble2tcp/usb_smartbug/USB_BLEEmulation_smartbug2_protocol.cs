@@ -173,6 +173,9 @@ namespace BLE2TCP.BLEEMU
             return new Packet(CmdId.CMD_SIF_PARAM_WRITE, data);
         }
 
+
+
+
         public static Packet IMUDataWrite(bool isenable, UInt16 accodr, byte accfsrenum)
         {
             UInt16 gyrodr = 0;
