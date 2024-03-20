@@ -53,7 +53,7 @@ def port_read():
         assert bytesconsumed==len(data)
 
         if (currframe.IsError):
-            self.FatalError(str(e))
+            FatalError(str(e))
             break
 
 
@@ -70,20 +70,38 @@ def port_write():
 
     print("Port read started...")
 
+    currframe=None
+
     while(True):
 
-        data = dev.Read(1)
+        if (currframe==None):
+            currframe = ISDPFrame()
+            
+        data = dev.Read(currframe.MaxRead)
 
         if (len(data)==0):
             continue
 
+
         #DebugPrintBytes("W: ",data)
 
         try:
-            data = com.write(data)
+            com.write(data)
         except Exception as e:
             FatalError(str(e))
             break
+
+        bytesconsumed = currframe.Put(data)
+    
+        if (currframe.IsError):
+            FatalError(str(e))
+            break
+
+        if (currframe.IsFinished):
+            cmd = ISDPCmd(currframe)
+            print("W:",cmd.ToString())
+            currframe = None
+    
     
 
 

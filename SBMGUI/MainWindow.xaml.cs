@@ -20,6 +20,7 @@ using System.Threading;
 using System.Diagnostics;
 using System.ComponentModel;
 using BLE2TCP;
+using DynamicProtocol;
 
 namespace SBMGUI
 {
@@ -39,6 +40,39 @@ namespace SBMGUI
 
         public MainWindow()
         {
+
+/*
+            ISDPFrame f = new ISDPFrame();
+            byte[] b = new byte[]{
+                0x55    ,
+                0xAA    ,
+                0x02    ,
+                0x00    ,
+                0x43    ,
+                0xFE    ,
+
+                };
+            
+            while(true)
+            { 
+                int bytesbonsumed = f.Put(b);
+                if (bytesbonsumed==b.Length)
+                    break;
+                b = b.Skip(bytesbonsumed).ToArray();
+            }
+
+            ISDPCmd c = new ISDPCmd(f);
+
+            int etype = c.ETYPE;
+            int eid = c.EID;
+            int gid = c.GID;
+            
+
+*/
+
+
+
+
             InitializeComponent();
 
             _iconstop      = LoadIcon("SBMGUI.images.close.ico");

@@ -120,22 +120,28 @@ class FakeNewportSerial(ISDPIO):
         self.eventsanity.Stop()
         self.isopened = False
 
+
+
+    #TIMER_MKS = 0
+
     def GetMKS(self):
         return int(time.time() * 1000000)
+        #self.TIMER_MKS+=1000
+        #return self.TIMER_MKS
 
     def EventLabel(self,tag:object):
         t = self.GetMKS()
         c = self.CMDLabel(t,random.randint(0,9))
-        print("L >",c.ToString())
+        #print("L >",c.ToString())
         self.Put(c.Frame.ToBytes())
 
     def EventAccel(self,tag:object):
         t = self.GetMKS()
-        x = self.sx.GetInt(t)
-        y = self.sy.GetInt(t)
-        z = self.sz.GetInt(t)
+        x =  self.sx.GetInt(t)
+        y =  self.sy.GetInt(t)
+        z =  self.sz.GetInt(t)
         c = self.CMDAccel(t,x,y,z)
-        print("A >",c.ToString())
+        #print("A >",c.ToString())
         self.Put(c.Frame.ToBytes())
 
     def EventSanity(self,tag:object):
@@ -144,7 +150,7 @@ class FakeNewportSerial(ISDPIO):
         y = self.sy.GetFloat(t)
         z = self.sz.GetFloat(t)
         c = self.CMDSanity(t,x,y,z)
-        print("S >",c.ToString())
+        #print("S >",c.ToString())
         self.Put(c.Frame.ToBytes())
 
 

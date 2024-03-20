@@ -258,7 +258,7 @@ namespace BLE2TCP.BLEEMU
                     if (m > 0)
                     {
                         b = new byte[m];
-                        // Debug.WriteLine("COM R > !1 "+m.ToString());
+                        //Debug.WriteLine("COM R > !1 "+m.ToString());
                         _reader.ReadBytes(b);
                         //Debug.WriteLine("COM R > !2");
                     }

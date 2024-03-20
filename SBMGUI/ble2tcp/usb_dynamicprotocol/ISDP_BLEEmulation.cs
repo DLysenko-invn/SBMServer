@@ -139,7 +139,11 @@ namespace BLE2TCP.BLEEMU
 
 
 
-        public uint MinimalRead =>  (uint)_currframe.MaxRead;
+        public uint MinimalRead 
+        {   get
+            {   return (uint)_currframe.MaxRead;
+            }
+        }
 
         public bool IsTimeoutDetected()
         {
@@ -149,6 +153,7 @@ namespace BLE2TCP.BLEEMU
         public void ProcessByte(byte b)
         {
 
+            //Debug.WriteLine("ProcessByte: "+b.ToString());
             _buf.Add(b);
             if (_buf.Count == _currframe.MaxRead)
             {
@@ -158,6 +163,7 @@ namespace BLE2TCP.BLEEMU
 
                 if (_currframe.IsError)
                 {   //todo: error
+                    Debug.WriteLine("ProcessByte: _currframe.IsError");
                 }
 
                 if (_currframe.IsFinished)
@@ -271,8 +277,6 @@ namespace BLE2TCP.BLEEMU
             if (cmd.ETYPE == ISDP.ETYPE_ASYNC)
             {
 
-                ISDP.Data d = ISDP.Decode(cmd);
-
                 foreach(IFakeService s in _serv.Values)
                 {
                     IDPPacketProcessor pp = s.NotifyCharacteristic as IDPPacketProcessor;
@@ -298,6 +302,8 @@ namespace BLE2TCP.BLEEMU
                 //CommLog("? " + p.LogString() );
                 return;
             }
+
+
 
 
             Debug.Assert(false,"unsupported command");

@@ -14,7 +14,7 @@ namespace BLE2TCP.BLEEMU
 
         override public string UUID { get { return "00000100-2000-1000-8000-cec278b6b50a"; } }
 
-        const int SID = ISDP.SID_ACCELEROMETER;
+        const int SID = ISDP.SID_RAW_ACCELEROMETER;
 
         IFakeCharacteristic _rw;
         IFakeCharacteristic _n;
@@ -49,7 +49,7 @@ namespace BLE2TCP.BLEEMU
                 Debug.Assert(rw!=null);
                 _rw = rw;
 
-                _decoder = new ISDP.CmdSensorDataAccel();
+                _decoder = new ISDP.CmdSensorDataRawAccGyro();
 
             }
 
@@ -79,9 +79,12 @@ namespace BLE2TCP.BLEEMU
                     return false;
 
                 UInt64 ts=(UInt64)d.timestamp;
-                Int16 x=ConvertI16(d.x);
-                Int16 y=ConvertI16(d.y);
-                Int16 z=ConvertI16(d.z);
+                Int16 x=(Int16)d.ix;// ConvertI16(d.x);
+                Int16 y=(Int16)d.iy;
+                Int16 z=(Int16)d.iz;
+
+
+
 
                 byte[] data = BLEProtocolEncode.IMUEvent((UInt32)ts, x,y,z);
                 Notify(data);
@@ -120,7 +123,8 @@ namespace BLE2TCP.BLEEMU
             const int DEFAULT_FSR_G = 0;
             Dictionary<int,int>  _fsrenum2g = new Dictionary<int, int>(){ {0,2}, {1,4}, {2,8}, {3,16}, {4,32} };
             int fsrenum2g(int fsrenum)
-            {   return  _fsrenum2g.ContainsKey(fsrenum) ? _fsrenum2g[fsrenum] : DEFAULT_FSR_G;
+            {   
+                return  _fsrenum2g.ContainsKey(fsrenum) ? _fsrenum2g[fsrenum] : DEFAULT_FSR_G;
             }
 
             public int AccelODRHz
@@ -171,14 +175,6 @@ namespace BLE2TCP.BLEEMU
 
  
 
-                { 
-                    ISDPCmd c = ISDP.SetConfigFSR(_accel_sensor_id,fsrenum2g((int)newaccfsrenum));
-                    DPTalk t = _transport.MakeATalk(c.Frame);
-                    t.WaitTillDone(USBSmartMotionAsBLE.DEFAULT_TIMEOUT_MS);
-                    if (!t.IsDoneOK)
-                        return false;  
-                    _fsrenum = (int)newaccfsrenum;
-                }
 
                 { 
                     ISDPCmd c = ISDP.SetConfigODR(_accel_sensor_id,newaccodr);
@@ -188,6 +184,16 @@ namespace BLE2TCP.BLEEMU
                         return false;  
                     _odr = (int)newaccodr;
                 }
+
+                { 
+                    ISDPCmd c = ISDP.SetConfigFSR(_accel_sensor_id,fsrenum2g(newaccfsrenum));
+                    DPTalk t = _transport.MakeATalk(c.Frame);
+                    t.WaitTillDone(USBSmartMotionAsBLE.DEFAULT_TIMEOUT_MS);
+                    if (!t.IsDoneOK)
+                        return false;  
+                    _fsrenum = (int)newaccfsrenum;
+                }
+
 
                 return true;
 

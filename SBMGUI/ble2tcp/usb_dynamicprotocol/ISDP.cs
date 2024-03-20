@@ -95,7 +95,7 @@ namespace DynamicProtocol
                     return 0;
                 
                 case Stage.SIZE:
-                    Debug.Assert(d.Length == 2);
+                    Debug.Assert(d.Length >= 2);
                     _stage=Stage.PAYLOAD;
                     _nextreadsize = d[0] + d[1]*0x100;
                     return 2;
@@ -127,7 +127,7 @@ namespace DynamicProtocol
 
         public int? GetByteAt(int index)
         { 
-            if ( (IsFinished) || (_data == null) || (index>=_data.Length) || (index<0) )
+            if ( (!IsFinished) || (_data == null) || (index>=_data.Length) || (index<0) )
                 return null;
             return _data[index];
         }
@@ -135,7 +135,7 @@ namespace DynamicProtocol
 
         public byte[] GetBytesAfter(int index)
         { 
-            if ( (IsFinished) || (_data == null) || (index>=_data.Length) || (index<0) )
+            if ( (!IsFinished) || (_data == null) || (index>=_data.Length) || (index<0) )
                 return null;
 
             int n = _data.Length - index;
@@ -205,7 +205,9 @@ namespace DynamicProtocol
         }
 
         public int GID
-        {   get{    return _frame.GetByteAt(0) ?? ISDP.ERROR;}
+        {   get
+            {    return _frame.GetByteAt(0) ?? ISDP.ERROR;
+            }
         }
     
         static public int MakeGID(int etype)
@@ -225,7 +227,9 @@ namespace DynamicProtocol
         }
 
         public byte[] Payload
-        {   get{    return _frame.GetBytesAfter(2); }   
+        {   get
+            {   return _frame.GetBytesAfter(2); 
+            }   
         }
 
         static public ISDPCmd FromFrame(ISDPFrame frame)
@@ -250,6 +254,8 @@ namespace DynamicProtocol
 
         public string ToHEXString(byte[] ba)
         {
+            if (ba==null)
+                return "";
             StringBuilder hex = new StringBuilder(ba.Length * 2);
             foreach (byte b in ba)
                 hex.AppendFormat("{0:X2}", b);
@@ -436,7 +442,7 @@ namespace DynamicProtocol
             byte[] c = new byte[ a.Length + ( (b==null) ? 0 : b.Length) ];
             a.CopyTo(c, 0);
             if (b!=null)            
-                b.CopyTo(c, b.Length );
+                b.CopyTo(c, a.Length );
             return c;
         }
 
@@ -454,8 +460,8 @@ namespace DynamicProtocol
 
 
         static byte[] Int16ToBytes(int n)
-        {
-            return BitConverter.GetBytes( (UInt16)n );
+        {   UInt16 a = (UInt16)n;
+            return BitConverter.GetBytes( a );
         }
     
         public static ISDPCmd WhoAmI()
@@ -521,10 +527,13 @@ namespace DynamicProtocol
 
             public int accuracy=0;
 
-            public double x = 0;
-            public double y = 0;
-            public double z = 0;
+            public double fx = 0;
+            public double fy = 0;
+            public double fz = 0;
 
+            public long ix = 0;
+            public long iy = 0;
+            public long iz = 0;
 
         }
     
@@ -535,40 +544,47 @@ namespace DynamicProtocol
 
             protected int Bytes_to_uint16(byte[] data, int pos)
             { 
-                Debug.Assert(data.Length<=pos+2);
+                Debug.Assert(data.Length>=pos+2);
                 return BitConverter.ToUInt16(data, pos);
             }
 
             protected long Bytes_to_uint24(byte[] data, int pos)
             { 
-                Debug.Assert(data.Length<=pos+3);
+                Debug.Assert(data.Length>=pos+3);
                 byte[] r = new byte[4]{ 0,data[pos],data[pos],data[pos] };
                 return Bytes_to_uint32(r,0);
             }
 
             protected int Bytes_to_int16(byte[] data, int pos)
             { 
-                Debug.Assert(data.Length<=pos+2);
+                Debug.Assert(data.Length>pos+2);
                 return BitConverter.ToInt16(data, pos);
             }
 
             protected int Bytes_to_int32(byte[] data, int pos)
             { 
-                Debug.Assert(data.Length<=pos+4);
+                Debug.Assert(data.Length>=pos+4);
                 return BitConverter.ToInt32(data, pos);
             }
 
             protected long Bytes_to_uint32(byte[] data, int pos)
             { 
-                Debug.Assert(data.Length<=pos+4);
+                Debug.Assert(data.Length>=pos+4);
                 return BitConverter.ToUInt32(data, pos);
             }
 
+
+            const long INT24MAX = 0xFFFFFF+1;
+            const long INT24SIGNBIT = 0x00800000;
+
             protected long Bytes_to_int24(byte[] data, int pos)
             { 
-                Debug.Assert(data.Length<=pos+3);
-                byte[] r = new byte[4]{ 0,data[pos],data[pos],data[pos] };
-                return Bytes_to_int32(r,0);
+                Debug.Assert(data.Length>=pos+3);
+                byte[] r = new byte[4]{ data[pos],data[pos+1],data[pos+2],0 };
+                long n = BitConverter.ToUInt32(r, 0);
+                if ( (n & INT24SIGNBIT) !=0 )
+                    n = n-INT24MAX;
+                return n;
             }
 
             protected double Bytes_to_int16_Q11(byte[] data, int pos)
@@ -619,9 +635,9 @@ namespace DynamicProtocol
                 if (d.Length!=13)
                     throw new ISDPException("Wrong sensor data length in "+ c.ToString());
                 r.accuracy = d[12];
-                r.x = Bytes_to_int16_Q11(d,6) ;
-                r.y = Bytes_to_int16_Q11(d,8) ;
-                r.z = Bytes_to_int16_Q11(d,10) ;
+                r.fx = Bytes_to_int16_Q11(d,6) ;
+                r.fy = Bytes_to_int16_Q11(d,8) ;
+                r.fz = Bytes_to_int16_Q11(d,10) ;
                 return r;
             }
         }
@@ -642,9 +658,9 @@ namespace DynamicProtocol
                     throw new ISDPException("Wrong sensor data length in "+ c.ToString());
 
                 r.accuracy = d[12];
-                r.x = Bytes_to_int16_Q4(d,6) ;
-                r.y = Bytes_to_int16_Q4(d,8) ;
-                r.z = Bytes_to_int16_Q4(d,10) ;
+                r.fx = Bytes_to_int16_Q4(d,6) ;
+                r.fy = Bytes_to_int16_Q4(d,8) ;
+                r.fz = Bytes_to_int16_Q4(d,10) ;
                 return r;
             }
         }
@@ -666,16 +682,16 @@ namespace DynamicProtocol
                 byte[] d = c.Payload;
                 if (d.Length==12)
                 {
-                    r.x = Bytes_to_int16(d,6);
-                    r.y = Bytes_to_int16(d,8);
-                    r.z = Bytes_to_int16(d,10);
+                    r.ix = Bytes_to_int16(d,6);
+                    r.iy = Bytes_to_int16(d,8);
+                    r.iz = Bytes_to_int16(d,10);
                     return r;
                 }
                 if (d.Length==15)
                 { 
-                    r.x = Bytes_to_int24(d,6);
-                    r.y = Bytes_to_int24(d,9);
-                    r.z = Bytes_to_int24(d,12);
+                    r.ix = Bytes_to_int24(d,6);
+                    r.iy = Bytes_to_int24(d,9);
+                    r.iz = Bytes_to_int24(d,12);
                     return r;
                 }
 

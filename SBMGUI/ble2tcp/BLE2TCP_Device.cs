@@ -42,7 +42,7 @@ namespace BLE2TCP
         }
         static bool IsSerialDP(string id)
         { 
-            return id.ToLower().Contains("usb#");
+            return id.Contains("FTDIBUS");
         }
 
 
@@ -53,7 +53,7 @@ namespace BLE2TCP
                 return new BLEConnection(log, devid, proc);
 
             if (IsSerialSB(devid))
-                return new SBUSBConnection(log, devid, proc);
+                return new SBUSBConnection(log, devid, proc);    
 
             if (IsSerialDP(devid))
                 return new DPUSBConnection(log, devid, proc);
