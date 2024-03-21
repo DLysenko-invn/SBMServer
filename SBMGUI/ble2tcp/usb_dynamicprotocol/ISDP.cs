@@ -105,9 +105,9 @@ namespace DynamicProtocol
                     Debug.Assert( n<=_nextreadsize );
                     _nextreadsize -= n;
                     if (_data==null)
-                    {   _data = ISDP.ConcatArray(d,null);
+                    {   _data = ISDP.ConcatByteArray(d,null);
                     } else
-                    {   _data = ISDP.ConcatArray(_data,d);
+                    {   _data = ISDP.ConcatByteArray(_data,d);
                     }
                     if (_nextreadsize==0)
                         _stage=Stage.DONE;
@@ -436,31 +436,55 @@ namespace DynamicProtocol
             return p;
         }
 
-        public static byte[] ConcatArray(byte[] a,byte[] b)
+        public static byte[] ConcatByteArray(byte[] a,byte[] b)
+        {
+            return ConcatArray<byte>(a,b);
+        }
+
+        public static int[] SubIntArray(int[] data,int index, int length)
+        {   
+            return SubArray<int>( data,index,  length);
+        }
+
+        public static int[] ConcatIntArray(int[] a,int[] b)
+        {
+            return ConcatArray<int>(a,b);
+        }
+
+        public static T[] ConcatArray<T>(T[] a,T[] b)
         {
             Debug.Assert(a!=null);
-            byte[] c = new byte[ a.Length + ( (b==null) ? 0 : b.Length) ];
+            T[] c = new T[ a.Length + ( (b==null) ? 0 : b.Length) ];
             a.CopyTo(c, 0);
             if (b!=null)            
                 b.CopyTo(c, a.Length );
             return c;
         }
 
-/*
 
-        byte[] SubArray(byte[] a,int index,int count)
+        public static T[] SubArray<T>(this T[] data, int index, int length)
         {
-            Debug.Assert(a!=null);
-            Debug.Assert(a.Length<=index+count);
-            byte[] r = new byte[count];
-            Array.Copy(a,index,r,0,count);
-            return r;
+            T[] result = new T[length];
+            Array.Copy(data, index, result, 0, length);
+            return result;
         }
-*/
 
 
-        static byte[] Int16ToBytes(int n)
+
+
+
+        public static byte[] Int16ToBytes(long n)
         {   UInt16 a = (UInt16)n;
+            return BitConverter.GetBytes( a );
+        }
+
+        public static byte[] UInt32ToBytes(long n)
+        {   UInt32 a = (UInt32)n;
+            return BitConverter.GetBytes( a );
+        }
+
+        public static byte[] Int32ToBytes(long n)
+        {   Int32 a = (Int32)n;
             return BitConverter.GetBytes( a );
         }
     
@@ -483,9 +507,9 @@ namespace DynamicProtocol
             int cfgsize = cfgdata.Length;
             Debug.Assert( cfgsize <= CFG_PAYLOAD_SIZE);
             byte[] data = ToByteArray( new int[]{ ISDP.GIDCMD ,ISDP.EID_SET_SENSOR_CFG , sensorid, cfgtype ,cfgsize  } );
-            data = ConcatArray(data,cfgdata);
+            data = ConcatByteArray(data,cfgdata);
             if (cfgsize<CFG_PAYLOAD_SIZE)
-                data = ConcatArray( data, new byte[CFG_PAYLOAD_SIZE - cfgsize]);
+                data = ConcatByteArray( data, new byte[CFG_PAYLOAD_SIZE - cfgsize]);
             return  new ISDPCmd( ISDPFrame.FromPayload( data ) );
         }
 
@@ -504,7 +528,7 @@ namespace DynamicProtocol
             int period_ms = (odr_hz!=0) ? (int)( (1.0/odr_hz)*tomicriseconds ) : 0;
             byte[] period_data = Int16ToBytes( period_ms) ;
             byte[] data = ToByteArray(  new int[]{ ISDP.GIDCMD ,ISDP.EID_SET_SENSOR_PERIOD , sensorid } );
-            data  = ConcatArray(data, period_data); 
+            data  = ConcatByteArray(data, period_data); 
             return  new ISDPCmd( ISDPFrame.FromPayload( data ) );
         }
 
@@ -534,6 +558,8 @@ namespace DynamicProtocol
             public long ix = 0;
             public long iy = 0;
             public long iz = 0;
+
+            public byte label;
 
         }
     

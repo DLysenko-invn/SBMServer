@@ -117,7 +117,7 @@ namespace BLE2TCP.BLEEMU
 /*
             FakeServiceSIF      s_sif    = new ISDP_FakeServiceSIF(proc,this);
             FakeServiceSIFRAW   s_sifraw = new ISDP_FakeServiceSIFRAW(proc, this);
-            FakeServiceIMU      s_imu    = new ISDP_FakeServiceIMU(proc,this);            
+ 
 */
 
 
